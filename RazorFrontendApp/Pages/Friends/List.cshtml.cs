@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Models;
 using Services;
 
@@ -10,60 +11,73 @@ namespace RazorFrontendApp.Pages.Friends
         private IFriendsService _service;
         private ILogger<ListModel> _logger;
 
-        public string Country { get; set; } = null;
-        public string City { get; set; } = null;
         public string Filter { get; set; } = null;
-        public bool NoAddress { get; set; } = false;
 
         public string HeaderSuffix { get; set; } = null;
         public List<IFriend> Friends { get; set; } = new();
         public string UpdateMessage { get; set; } = null;
         public string ErrorMessage { get; set; } = null;
 
+        public List<SelectListItem> PageSizes { get; set; } = new();
+
         public int PageSize { get; set; } = 10;
         public int CurrentPage { get; set; } = 1;
         public int TotalFriends { get; set; } = 0;
         public int TotalPages { get; set; } = 1;
-        public int DisplayedPages { get; set; } = 3;
+        public int DisplayedPages { get; set; } = 4;
 
         public async Task<IActionResult> OnGet()
         {
             try
             {
-                Country = Request.Query["country"];
-                City = Request.Query["city"];
                 Filter = Request.Query["filter"];
 
-                if (bool.TryParse(Request.Query["noAddress"], out bool noAddress))
-                    NoAddress = noAddress;
-                if (int.TryParse(Request.Query["pageSize"], out int pageSize))
-                    PageSize = (pageSize < 1) ? 1 : pageSize;
-                if (int.TryParse(Request.Query["page"], out int currentPage))
-                    CurrentPage = (currentPage < 1) ? 1 : currentPage;
+                string country = Request.Query["country"];
+                string city = Request.Query["city"];
+
+                bool noAddress = false;
+                if (bool.TryParse(Request.Query["noAddress"], out bool _noAddress))
+                    noAddress = _noAddress;
                 
-                if (NoAddress is false && Country is null && City is null)
+                if (int.TryParse(Request.Query["pageSize"], out int _pageSize))
+                    PageSize = (_pageSize < 1) ? 1 : _pageSize;
+
+                PageSizes.Add(new SelectListItem($"{PageSize}", $"{PageSize}", true));
+                for (int i = 5; i <= 40; i*=2)
+                {
+                    if (i != PageSize)
+                        PageSizes.Add(new SelectListItem($"{i}", $"{i}"));
+                }
+                PageSizes.Sort((a, b) => int.Parse(a.Value).CompareTo(int.Parse(b.Value)));
+                
+                if (int.TryParse(Request.Query["page"], out int _currentPage))
+                    CurrentPage = (_currentPage < 1) ? 1 : _currentPage;
+                
+                if (noAddress is false && country is null && city is null)
                 {
                     TotalFriends = await _service.CountFriendsAsync(null, Filter);
 
                     TotalPages = (int)Math.Ceiling(Decimal.Divide(TotalFriends, PageSize));
+                    CurrentPage = Math.Min(CurrentPage, TotalPages);
 
                     Friends = await _service.ReadFriendsAsync(null, false, Filter, CurrentPage-1, PageSize);
                     return Page();
                 }
 
-                Country = (Country?.Trim() ?? "");
-                City = (City?.Trim() ?? "");
+                country = (country?.Trim() ?? "");
+                city = (city?.Trim() ?? "");
 
-                if (NoAddress)
+                if (noAddress)
                     HeaderSuffix = "without addresses";
                 else
-                    HeaderSuffix = $" in {City}{(City != "" && Country != "" ? ", " : null)}{Country}";
+                    HeaderSuffix = $" in {city}{(city != "" && country != "" ? ", " : null)}{country}";
 
-                TotalFriends = await _service.CountFriendsByLocationAsync(null, NoAddress, Country, City, Filter);
+                TotalFriends = await _service.CountFriendsByLocationAsync(null, noAddress, country, city, Filter);
 
                 TotalPages = (int)Math.Ceiling(Decimal.Divide(TotalFriends, PageSize));
+                CurrentPage = Math.Min(CurrentPage, TotalPages);
 
-                Friends = await _service.ReadFriendsByLocationAsync(null, NoAddress, Country, City, Filter, CurrentPage-1, PageSize);
+                Friends = await _service.ReadFriendsByLocationAsync(null, noAddress, country, city, Filter, CurrentPage-1, PageSize);
 
                 if (Friends.Count == 0)
                     throw new ArgumentException("No friends found");

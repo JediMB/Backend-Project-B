@@ -20,6 +20,16 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.disabled {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 /*
 .dropdown-menu li {
     position: relative;
@@ -40,6 +50,56 @@ body {
 .dropdown-menu > li:hover > .dropdown-submenu {
     display: block;
 }*/
+
+[data-tooltip] {
+    --tooltip-translate-y: 0%;
+    --tooltip-opacity: 0;
+    --tooltip-transition: all 0.25s ease-in-out;
+    --tooltip-scale: 0;
+    position: relative;
+}
+
+[data-tooltip]::before,
+[data-tooltip]::after {
+    position: absolute;
+    pointer-events: none;
+    left: 50%;
+    transform: translateX(-50%) translateY(var(--tooltip-translate-y)) scale(var(--tooltip-scale));
+    opacity: var(--tooltip-opacity);
+    background-color: #000;
+    transition: var(--tooltip-transition);
+}
+
+[data-tooltip]::before {
+    clip-path: polygon(50% 100%, 100% 0%, 0% 0%);
+    top: -0.25em;
+    width: 1em;
+    height: 1em;
+    content: "";
+    z-index: 11;
+}
+
+[data-tooltip]::after {
+    border: 1px #fff solid;
+    border-radius: 0.25rem;
+    top: -1.25em;
+    width: max-content;
+    max-width: max(150%, 4rem);
+    padding: 1em;
+    content: attr(data-tooltip);
+    color: #fff;
+    font-size: 0.75rem;
+    text-align: center;
+    z-index: 10;
+}
+
+[data-tooltip]:hover,
+[data-tooltip]:active,
+[data-tooltip]:active:focus {
+    --tooltip-translate-y: -100%;
+    --tooltip-opacity: 1;
+    --tooltip-scale: 1;
+}
 
 /* Country and city lists */
 
@@ -80,7 +140,9 @@ img.city {
     background-color: #ccf;
 }
 
-.card:hover > img {
+.card:hover > img,
+.card:active > img,
+.card:active:focus > img {
     opacity: 0.5;
 }
 
@@ -88,7 +150,9 @@ img.city {
     color: #000;
 }
 
-.card a:hover {
+.card a:hover,
+.card a:active,
+.card a:active:focus {
     color: var(--bs-primary);
 }
 
@@ -112,6 +176,24 @@ img.city {
 }
 
 /* Friend list */
+
+.list-bar {
+    border: 1px solid #dee2e6;
+    border-radius: .25rem;
+    background-color: #fff;
+    padding: 6px 12px;
+    flex-grow: 1;
+}
+
+.list-bar * {
+    border: none;
+    background: none;
+    height: 24px;
+}
+
+.list-bar input[type=text] {
+    width: 100%;
+}
 
 .friend-list {
     display: grid;
@@ -178,6 +260,15 @@ img.city {
     padding: 0;
     border: none;
     background: none;
+    transition: transform 0.2s ease-in-out;
+}
+
+.btn-svg:hover,
+.btn-svg:active,
+.brn-svg:active:focus {
+    transform: scale(1.25);
+    transition: transform 0.2s ease-in-out;
+    z-index: 6;
 }
 
 .btn-svg svg {
@@ -187,18 +278,26 @@ img.city {
     inset: 0;
 }
 
-.svg-add:hover {
+.svg-add:hover,
+.svg-add:active,
+.svg-add:active:focus {
     fill: limegreen;
 }
 
-.svg-view:hover {
+.svg-view:hover,
+.svg-view:active,
+.svg-view:active:focus {
     fill: #6cb1ff;
 }
 
-.svg-edit:hover {
+.svg-edit:hover,
+.svg-edit:active,
+.svg-edit:active:focus {
     fill: yellow;
 }
 
-.svg-delete:hover {
+.svg-delete:hover,
+.svg-delete:active,
+.svg-delete:active:focus {
     fill: red;
 }

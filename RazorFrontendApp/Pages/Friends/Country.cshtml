@@ -12,7 +12,15 @@
 
     @if (Model.Cities.Count > 0)
     {
-        <p>Click on a city below to see the friends that live in it:</p>
+        <p>
+            @{ int friends = Model.Cities.Sum(c => c.friends); }
+
+            I have <strong>@friends @(friends != 1 ? "friends" : "friend")</strong> in @Model.Country.
+        </p>
+        <p>
+            Click <a class="text-info" href="~/Friends/List?country=@Model.Country">here</a> to see all of them,
+            or click on a city below to see the friends who live in that city:
+        </p>
     }
 
     <div class="card-container">
