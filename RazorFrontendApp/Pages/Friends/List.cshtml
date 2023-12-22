@@ -1,0 +1,139 @@
+﻿@page
+@model RazorFrontendApp.Pages.Friends.ListModel
+@{
+    ViewData["Title"] = "List of friends";
+}
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@attribute [IgnoreAntiforgeryToken]
+
+<section id="friends-list">
+    <h3 class="fs-4 border-bottom mb-0">Friends</h3>
+    <h1 class="display-5 fw-normal m-0">@ViewData["Title"]</h1>
+    <h2>@Model.HeaderSuffix</h2>
+
+    @if (Model.UpdateMessage != null)
+    {
+        <div class="col-12 bg-info p-2">
+            @Model.UpdateMessage
+        </div>
+    }
+
+    <p>These are my friends.</p>
+    
+    @foreach (var q in Model.Request.Query)
+    {
+        <div>@q.Key @q.Value</div>
+    }
+
+    <div class="container">
+
+        <div class="d-flex flex-row justify-content-between align-items-center my-3">
+            <form method="get" class="flex-grow-1">
+                <div>
+                    @if (Model.Country is not null)
+                    { <input type="hidden" name="country" value="@Model.Country" /> }
+                    @if (Model.City is not null)
+                    { <input type="hidden" name="city" value="@Model.City" /> }
+                    <input class="w-75" type="text" placeholder="Name filter" name="filter" value="@Model.Filter" />
+                </div>
+            </form>
+
+            <nav aria-label="Friend list pagination">
+                <ul class="pagination m-0">
+                    
+
+                    <li class="page-item"><a class="page-link" href="@Model.Request.QueryString">Previous</a></li>
+
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+
+                    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                </ul>
+            </nav>
+        </div>
+
+
+        <div class="friend-list">
+            <div class="friend-list__header first">Name</div>
+            <div class="friend-list__header">Address</div>
+            <div class="friend-list__header">Info</div>
+            <div class="friend-list__header last">
+                <a href="~/Friends/Friend?action=add" class="btn-svg svg-add">
+                    <svg><use xlink:href="#svg-add" href="#svg-add"></use></svg>
+                </a>
+            </div>
+
+            @{ bool evenRow = false; }
+            @foreach (var friend in Model.Friends)
+            {
+                string rowClass = $"friend-list__row-{(evenRow ? "even" : "odd")}";
+
+                <div class="friend-list__column first @rowClass">
+                    @friend.FirstName @friend.LastName
+                </div>
+                <div class="friend-list__column @rowClass">
+                    @if (friend.Address != null)
+                    {
+                        <div>@friend.Address.StreetAddress</div>
+                        <div>@friend.Address.ZipCode @friend.Address.City</div>
+                        <div>@friend.Address.Country</div>
+                    }
+                </div>
+                <div class="friend-list__column @rowClass">
+                    @if (friend.Birthday is not null)
+                        { <div>Born: @friend.Birthday.Value.ToString("yyyy-MM-dd")</div> }
+                    @if (friend.Pets is not null && friend.Pets.Count is not 0)
+                        { <div>Pets: @friend.Pets.Count</div> }
+                    @if (friend.Quotes is not null && friend.Quotes.Count is not 0)
+                        { <div>Quotes: @friend.Quotes.Count</div> }
+                </div>
+                <div class="friend-list__column last @rowClass">
+                    <a href="~/Friends/Friend?action=view&id=@friend.FriendId" class="btn-svg svg-view">
+                        <svg><use xlink:href="#svg-view" href="#svg-view"></use></svg>
+                    </a>
+                    <a href="~/Friends/Friend?action=edit&id=@friend.FriendId" class="btn-svg svg-edit">
+                        <svg><use xlink:href="#svg-view" href="#svg-edit"></use></svg>
+                    </a>
+                    <form method="post">
+                        <input type="hidden" name="delete-id" value="@friend.FriendId" />
+                        <button type="submit" class="btn-svg svg-delete">
+                            <svg><use xlink:href="#svg-view" href="#svg-delete"></use></svg>
+                        </button>
+                    </form>
+                </div>
+
+                evenRow = !evenRow;
+            }
+        </div>
+    </div>
+
+    @if (Model.ErrorMessage != null)
+    {
+        <div class="col-12 bg-danger p-2">
+            @Model.ErrorMessage
+        </div>
+    }
+</section>
+
+<svg xmlns="http://www.w3.org/2000/svg">
+    <!-- add -->
+    <symbol id="svg-add" height="24" viewBox="0 -960 960 960" width="24">
+        <path d="M440-280h80v-160h160v-80H520v-160h-80v160H280v80h160v160Zm40 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+    </symbol>
+
+    <!-- view -->
+    <symbol id="svg-view" height="24" viewBox="0 -960 960 960" width="24">
+        <path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z" />
+    </symbol>
+
+    <!-- edit -->
+    <symbol id="svg-edit" height="24" viewBox="0 -960 960 960" width="24">
+        <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+    </symbol>
+
+    <!-- delete -->
+    <symbol id="svg-delete" height="24" viewBox="0 -960 960 960" width="24">
+        <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+    </symbol>
+</svg>

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Reflection.Metadata;
+using System.Formats.Asn1;
 
 //DbRepos namespace is a layer to abstract the detailed plumming of
 //retrieveing and modifying and data in the database using EFC.
@@ -339,23 +340,58 @@ public class csFriendsDbRepos
         }
     }
 
-    public async Task<List<IFriend>> ReadFriendsAsync(loginUserSessionDto usr, bool seeded, bool flat, string filter, int pageNumber, int pageSize)
+    public async Task<int> CountFriendsAsync(loginUserSessionDto usr, string filter)
+    {
+        using var db = csMainDbContext.DbContext(_dblogin);
+
+        filter = filter?.ToLower() ?? "";
+
+        var _query = db.Friends.AsNoTracking();
+
+        return await _query
+            .Where(i => i.FirstName.ToLower().Contains(filter)
+                    || i.LastName.ToLower().Contains(filter))
+            .CountAsync();
+    }
+
+    public async Task<int> CountFriendsByLocationAsync(loginUserSessionDto usr, bool noAddress, string country, string city, string filter)
+    {
+        using var db = csMainDbContext.DbContext(_dblogin);
+
+        filter = filter?.ToLower() ?? "";
+        country = country?.ToLower() ?? "";
+        city = city?.ToLower() ?? "";
+
+        var _query = db.Friends.AsNoTracking();
+
+        return await _query
+            .Where(i => (country == "" || i.AddressDbM.Country.ToLower() == country)
+                    && (city == "" || i.AddressDbM.City.ToLower() == city)
+                    && (i.FirstName.ToLower().Contains(filter) ||
+                        i.LastName.ToLower().Contains(filter)))
+            .CountAsync();
+    }
+
+    public async Task<List<IFriend>> ReadFriendsAsync(loginUserSessionDto usr, /* bool seeded, */ bool flat, string filter, int pageNumber, int pageSize)
     {
         using (var db = csMainDbContext.DbContext(_dblogin))
         {
-            filter ??= "";
+            filter = filter?.ToLower() ?? "";
+
             if (!flat)
             {
                 //make sure the model is fully populated, try without include.
                 //remove tracking for all read operations for performance and to avoid recursion/circular access
-                var _query = db.Friends.AsNoTracking().Include(i => i.AddressDbM).Include(i => i.PetsDbM)
+                var _query = db.Friends.AsNoTracking()
+                    .Include(i => i.AddressDbM)
+                    .Include(i => i.PetsDbM)
                     .Include(i => i.QuotesDbM);
 
                 return await _query
 
                     //Adding filter functionality
-                    .Where(i => i.Seeded == seeded
-                            && (i.FirstName.ToLower().Contains(filter) ||
+                    .Where(i => /* i.Seeded == seeded
+                            && */ (i.FirstName.ToLower().Contains(filter) ||
                                 i.LastName.ToLower().Contains(filter)))
 
                     //Adding paging
@@ -373,8 +409,8 @@ public class csFriendsDbRepos
                 return await _query
 
                     //Adding filter functionality
-                    .Where(i => i.Seeded == seeded
-                            && (i.FirstName.ToLower().Contains(filter) ||
+                    .Where(i => /* i.Seeded == seeded
+                            && */ (i.FirstName.ToLower().Contains(filter) ||
                                 i.LastName.ToLower().Contains(filter)))
 
                     //Adding paging
@@ -383,6 +419,49 @@ public class csFriendsDbRepos
 
                     .ToListAsync<IFriend>();
             }
+        }
+    }
+
+    public async Task<List<IFriend>> ReadFriendsByLocationAsync(loginUserSessionDto usr, bool noAddress, string country, string city, string filter, int pageNumber, int pageSize)
+    {
+        using (var db = csMainDbContext.DbContext(_dblogin))
+        {
+            filter = filter?.ToLower() ?? "";
+            country = country?.ToLower() ?? "";
+            city = city?.ToLower() ?? "";
+            
+            var _query = db.Friends.AsNoTracking()
+                .Include(i => i.AddressDbM)
+                .Include(i => i.PetsDbM)
+                .Include(i => i.QuotesDbM);
+
+            if (noAddress)
+            {
+                return await _query
+
+                    .Where(i => i.AddressId == null
+                        && (i.FirstName.ToLower().Contains(filter) ||
+                            i.LastName.ToLower().Contains(filter)))
+
+                    .Skip(pageNumber * pageSize)
+                    .Take(pageSize)
+
+                    .ToListAsync<IFriend>();
+            }
+
+            return await _query
+
+                //Adding filter functionality
+                .Where(i => (country == "" || i.AddressDbM.Country.ToLower() == country)
+                        && (city == "" || i.AddressDbM.City.ToLower() == city)
+                        && (i.FirstName.ToLower().Contains(filter) ||
+                            i.LastName.ToLower().Contains(filter)))
+
+                //Adding paging
+                .Skip(pageNumber * pageSize)
+                .Take(pageSize)
+
+                .ToListAsync<IFriend>();
         }
     }
 

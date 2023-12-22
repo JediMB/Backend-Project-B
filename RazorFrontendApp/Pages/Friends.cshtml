@@ -1,0 +1,56 @@
+﻿@page
+@model RazorFrontendApp.Pages.FriendsModel
+@{
+    ViewData["Title"] = "Friends by country";
+}
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@attribute [IgnoreAntiforgeryToken]
+
+<section id="friends-by-country">
+    <h2 class="fs-4 border-bottom mb-0">Friends</h2>
+    <h1 class="display-5 fw-normal">@ViewData["Title"]</h1>
+
+    @{ string friendCountString = Model.FriendCount + (Model.FriendCount == 1 ? " friend" : " friends"); }
+    <p>
+        I have <strong>@friendCountString</strong> all over the world.
+        @if (Model.HomelessFriendCount > 0) {
+            string auxVerb = Model.HomelessFriendCount == 1 ? "is" : "are";
+            <span><em>Unfortunately <strong>@Model.HomelessFriendCount</strong> of them @auxVerb homeless.</em> 😢</span>
+        }
+    </p>
+    @if (Model.Countries.Count > 0)
+    {
+        <p>Click on a country below to see what cities my non-homeless friends are living in:</p>
+
+        <div class="card-container">
+            @foreach (var country in Model.Countries)
+            {
+                <div class="card">
+                    @{
+                        string imageUri = "/images/" + country.name + ".png";
+                        <img src="@imageUri" class="flag" />
+                    }
+
+                    <a href="~/Friends/Country?name=@country.name">
+                        <div class="card-body">
+                            <h4 class="card-title text-center">@country.name</h4>
+                            <div class="card-text">
+                                @{
+                                    string cardText = $"{@country.friends} friend{(country.friends == 1 ? "" : "s")}{(country.name == "Unknown" ? "." : " in " + @country.cities + " cities.")}";
+                                }
+                                @cardText
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.ErrorMessage != null)
+    {
+        <div class="col-12 bg-danger p-2">
+            @Model.ErrorMessage
+        </div>
+    }
+</section>

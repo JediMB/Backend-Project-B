@@ -55,7 +55,10 @@ namespace Services
         public Task<adminInfoDbDto> SeedAsync(loginUserSessionDto usr, int nrOfItems) => _repo.SeedAsync(usr, nrOfItems);
         public Task<adminInfoDbDto> RemoveSeedAsync(loginUserSessionDto usr, bool seeded) => _repo.RemoveSeedAsync(usr, seeded);
 
-        public Task<List<IFriend>> ReadFriendsAsync(loginUserSessionDto usr, bool seeded, bool flat, string filter, int pageNumber, int pageSize) => _repo.ReadFriendsAsync(usr, seeded, flat, filter, pageNumber, pageSize);
+        public Task<int> CountFriendsAsync(loginUserSessionDto usr, string filter) => _repo.CountFriendsAsync(usr, filter);
+        public Task<int> CountFriendsByLocationAsync(loginUserSessionDto usr, bool noAddress, string country, string city, string filter) => _repo.CountFriendsByLocationAsync(usr, noAddress, country, city, filter);
+        public Task<List<IFriend>> ReadFriendsAsync(loginUserSessionDto usr, /* bool seeded, */ bool flat, string filter, int pageNumber, int pageSize) => _repo.ReadFriendsAsync(usr, /* seeded, */ flat, filter, pageNumber, pageSize);
+        public Task<List<IFriend>> ReadFriendsByLocationAsync(loginUserSessionDto usr, bool noAddress, string country, string city, string filter, int pageNumber, int pageSize) => _repo.ReadFriendsByLocationAsync(usr, noAddress, country, city, filter, pageNumber, pageSize);
         public Task<IFriend> ReadFriendAsync(loginUserSessionDto usr, Guid id, bool flat) => _repo.ReadFriendAsync(usr, id, flat);
         public Task<IFriend> DeleteFriendAsync(loginUserSessionDto usr, Guid id) => _repo.DeleteFriendAsync(usr, id);
         public Task<IFriend> UpdateFriendAsync(loginUserSessionDto usr, csFriendCUdto item) => _repo.UpdateFriendAsync(usr, item);

@@ -79,7 +79,7 @@ namespace Models
             fname ??= FirstName;
             lname ??= LastName;
 
-            return $"{fname}.{lname}@{_seeds._domains.Domains[this.Next(0, _seeds._domains.Domains.Count)]}";
+            return $"{fname}.{lname}@{_seeds._domains.Domains[this.Next(0, _seeds._domains.Domains.Count)]}".ToLower().Replace("'", "");
         }
 
         public string PhoneNr => $"{this.Next(700, 800)} {this.Next(100, 1000)} {this.Next(100, 1000)}";
@@ -572,9 +572,9 @@ namespace Models
                 },
                 _names = new csSeedNames
                 {
-                    jsonFirstNames = "Harry, Lord, Hermione, Albus, Severus, Ron, Draco, Frodo, Gandalf, Sam, Peregrin, Saruman",
-                    jsonLastNames = "Potter, Voldemort, Granger, Dumbledore, Snape, Malfoy, Baggins, the Gray, Gamgee, Took, the White",
-                    jsonPetNames = "Max, Charlie, Cooper, Milo, Rocky, Wanda, Teddy, Duke, Leo, Max, Simba",
+                    jsonFirstNames = "Adora, Catra, Glimmer, Perfuma, Mermista, Entrapta, Netossa, Spinnerella, Frosta, Scorpia, Lynda, Bow",
+                    jsonLastNames = "Shera, Meowmeow, Sparkles, Flowergirl, Seara, LaGeek, Darling, Spinny, Wintersbane, Biggal, D'Ream",
+                    jsonPetNames = "Swift Wind, Melog, Imp, Glory, Pooka, Maryu, Liz, Wart, Snek, Snomon, Applesauce",
                 },
                 _domains = new csSeedDomains
                 {

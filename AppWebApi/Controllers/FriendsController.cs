@@ -36,15 +36,15 @@ namespace AppWebApi.Controllers
         [ActionName("Read")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<IFriend>))]
         [ProducesResponseType(400, Type = typeof(string))]
-        public async Task<IActionResult> Read(string seeded = "true", string flat = "true",
+        public async Task<IActionResult> Read(/*string seeded = "true", */ string flat = "true",
             string filter = null, string pageNr = "0", string pageSize = "1000")
         {
             //Convert and check parameters
-            bool _seeded = true;
-            if (!bool.TryParse(seeded, out _seeded))
-            {
-                return BadRequest("seeded format error");
-            }
+            //bool _seeded = true;
+            //if (!bool.TryParse(seeded, out _seeded))
+            //{
+            //    return BadRequest("seeded format error");
+            //}
 
             bool _flat = true;
             if (!bool.TryParse(flat, out _flat))
@@ -64,7 +64,36 @@ namespace AppWebApi.Controllers
                 return BadRequest("pageSize format error");
             }
 
-            var items = await _service.ReadFriendsAsync(_usr, _seeded, _flat, filter?.Trim()?.ToLower(), _pageNr, _pageSize);
+            var items = await _service.ReadFriendsAsync(_usr, /* _seeded, */ _flat, filter?.Trim()?.ToLower(), _pageNr, _pageSize);
+            return Ok(items);
+        }
+
+        //GET: api/friends/readbylocation
+        [HttpGet()]
+        [ActionName("ReadByLocation")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<IFriend>))]
+        [ProducesResponseType(400, Type = typeof(string))]
+        public async Task<IActionResult> ReadByLocation(string noAddress = "false",
+            string country = null, string city = null, string filter = null,
+            string pageNr = "0", string pageSize = "1000")
+        {
+            bool _noAddress = false;
+            if (!bool.TryParse(noAddress, out _noAddress))
+                return BadRequest("noAddress format error");
+
+            int _pageNr = 0;
+            if (!int.TryParse(pageNr, out _pageNr))
+            {
+                return BadRequest("pageNr format error");
+            }
+
+            int _pageSize = 0;
+            if (!int.TryParse(pageSize, out _pageSize))
+            {
+                return BadRequest("pageSize format error");
+            }
+
+            var items = await _service.ReadFriendsByLocationAsync(_usr, _noAddress, country, city, filter, _pageNr, _pageSize);
             return Ok(items);
         }
 

@@ -22,7 +22,10 @@ namespace Services
         public Task<adminInfoDbDto> SeedAsync(loginUserSessionDto usr, int nrOfItems);
         public Task<adminInfoDbDto> RemoveSeedAsync(loginUserSessionDto usr, bool seeded);
 
-        public Task<List<IFriend>> ReadFriendsAsync(loginUserSessionDto usr, bool seeded, bool flat, string filter, int pageNumber, int pageSize);
+        public Task<int> CountFriendsAsync(loginUserSessionDto usr, string filter);
+        public Task<int> CountFriendsByLocationAsync(loginUserSessionDto usr, bool noAddress, string country, string city, string filter);
+        public Task<List<IFriend>> ReadFriendsAsync(loginUserSessionDto usr, /* bool seeded, */ bool flat, string filter, int pageNumber, int pageSize);
+        public Task<List<IFriend>> ReadFriendsByLocationAsync(loginUserSessionDto usr, bool noAddress, string country, string city, string filter, int pageNumber, int pageSize);
         public Task<IFriend> ReadFriendAsync(loginUserSessionDto usr, Guid id, bool flat);
         public Task<IFriend> DeleteFriendAsync(loginUserSessionDto usr, Guid id);
         public Task<IFriend> UpdateFriendAsync(loginUserSessionDto usr, csFriendCUdto item);

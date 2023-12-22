@@ -30,10 +30,10 @@ public sealed class csAppConfig
     #endregion
 
     //All the DB Connections in the appsetting file
-    private static DbSetDetail _dbSetActive = new DbSetDetail();
-    private static List<DbSetDetail> _dbSets = new List<DbSetDetail>();
-    private static PasswordSaltDetails _passwordSaltDetails = new PasswordSaltDetails();
-    private static JwtConfig _jwtConfig = new JwtConfig();
+    private static DbSetDetail _dbSetActive = new();
+    private static List<DbSetDetail> _dbSets = new();
+    private static PasswordSaltDetails _passwordSaltDetails = new();
+    private static JwtConfig _jwtConfig = new();
 
     private csAppConfig()
     {
@@ -77,10 +77,8 @@ public sealed class csAppConfig
         {
             lock (instanceLock)
             {
-                if (_instance == null)
-                {
-                    _instance = new csAppConfig();
-                }
+                _instance ??= new csAppConfig();
+
                 return _configuration;
             }
         }
@@ -92,10 +90,8 @@ public sealed class csAppConfig
         {
             lock (instanceLock)
             {
-                if (_instance == null)
-                {
-                    _instance = new csAppConfig();
-                }
+                _instance ??= new csAppConfig();
+                
                 return _dbSetActive;
             }
         }
@@ -107,16 +103,11 @@ public sealed class csAppConfig
 
         lock (instanceLock)
         {
-            if (_instance == null)
-            {
-                _instance = new csAppConfig();
-            }
+            _instance ??= new csAppConfig();
 
             var conn = _dbSetActive.DbLogins.First(m => m.DbUserLogin.Trim().ToLower() == DbUserLogin.Trim().ToLower());
-            if (conn == null)
-                throw new ArgumentException("Database connection not found");
 
-            return conn;
+            return conn ?? throw new ArgumentException("Database connection not found");
         }
     }
     public static string SecretMessage => ConfigurationRoot["SecretMessage"];
@@ -127,10 +118,8 @@ public sealed class csAppConfig
         {
             lock (instanceLock)
             {
-                if (_instance == null)
-                {
-                    _instance = new csAppConfig();
-                }
+                _instance ??= new csAppConfig();
+
                 return _passwordSaltDetails;
             }
         }
@@ -142,10 +131,8 @@ public sealed class csAppConfig
         {
             lock (instanceLock)
             {
-                if (_instance == null)
-                {
-                    _instance = new csAppConfig();
-                }
+                _instance ??= new csAppConfig();
+
                 return _jwtConfig;
             }
         }
