@@ -21,6 +21,11 @@ body {
   margin-bottom: 60px;
 }
 
+.page-link {
+    text-align: center;
+    min-width: 3em;
+}
+
 .disabled {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -56,7 +61,10 @@ body {
     --tooltip-opacity: 0;
     --tooltip-transition: all 0.25s ease-in-out;
     --tooltip-scale: 0;
+
     position: relative;
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
 }
 
 [data-tooltip]::before,
@@ -84,7 +92,7 @@ body {
     border-radius: 0.25rem;
     top: -1.25em;
     width: max-content;
-    max-width: max(150%, 4rem);
+    max-width: min(max(150%, 15rem), 90vw);
     padding: 1em;
     content: attr(data-tooltip);
     color: #fff;
@@ -276,28 +284,27 @@ img.city {
     width: 24px;
     height: 24px;
     inset: 0;
+    filter: drop-shadow(0 0 0.1rem #000);
 }
 
-.svg-add:hover,
-.svg-add:active,
-.svg-add:active:focus {
-    fill: limegreen;
+.btn-svg svg:hover,
+.btn-svg svg:active,
+.btn-svg svg:active:focus {
+    filter: brightness(1.5);
 }
 
-.svg-view:hover,
-.svg-view:active,
-.svg-view:active:focus {
-    fill: #6cb1ff;
+.svg-add {
+    fill: hsl(120, 61%, 45%);
 }
 
-.svg-edit:hover,
-.svg-edit:active,
-.svg-edit:active:focus {
-    fill: yellow;
+.svg-view {
+    fill: hsl(212, 100%, 60%);
 }
 
-.svg-delete:hover,
-.svg-delete:active,
-.svg-delete:active:focus {
-    fill: red;
+.svg-edit {
+    fill: hsl(60, 100%, 40%);
+}
+
+.svg-delete {
+    fill: hsl(0, 100%, 50%);
 }

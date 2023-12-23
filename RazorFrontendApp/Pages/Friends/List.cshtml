@@ -64,23 +64,29 @@
                 string rowClass = $"friend-list__row-{(evenRow ? "even" : "odd")}";
 
                 <div class="friend-list__column first @rowClass">
-                    @friend.FirstName @friend.LastName
+                    <div class="ms-xl-4 ms-lg-3 ms-md-1 ms-sm-0 me-auto" data-tooltip="@friend.Email">
+                        @friend.FirstName @friend.LastName
+                    </div>
                 </div>
                 <div class="friend-list__column @rowClass">
                     @if (friend.Address != null)
                     {
-                        <div>@friend.Address.StreetAddress</div>
-                        <div>@friend.Address.ZipCode @friend.Address.City</div>
-                        <div>@friend.Address.Country</div>
+                        <div class="ms-xl-4 ms-lg-3 ms-md-1 ms-sm-0 me-auto">
+                            <div>@friend.Address.StreetAddress</div>
+                            <div>@friend.Address.ZipCode @friend.Address.City</div>
+                            <div>@friend.Address.Country</div>
+                        </div>
                     }
                 </div>
                 <div class="friend-list__column @rowClass">
-                    @if (friend.Birthday is not null)
-                        { <div>Born: @friend.Birthday.Value.ToString("yyyy-MM-dd")</div> }
-                    @if (friend.Pets is not null && friend.Pets.Count is not 0)
-                        { <div>Pets: @friend.Pets.Count</div> }
-                    @if (friend.Quotes is not null && friend.Quotes.Count is not 0)
-                        { <div>Quotes: @friend.Quotes.Count</div> }
+                    <div class="ms-xl-4 ms-lg-3 ms-md-1 ms-sm-0 me-auto">
+                        @if (friend.Birthday is not null)
+                            { <div>Born: @friend.Birthday.Value.ToString("yyyy-MM-dd")</div> }
+                        @if (friend.Pets is not null && friend.Pets.Count is not 0)
+                            { <div>Pets: @friend.Pets.Count</div> }
+                        @if (friend.Quotes is not null && friend.Quotes.Count is not 0)
+                            { <div>Quotes: @friend.Quotes.Count</div> }
+                    </div>
                 </div>
                 <div class="friend-list__column last @rowClass">
                     <a href="~/Friends/Friend?action=view&id=@friend.FriendId" class="btn-svg svg-view" data-tooltip="View">
