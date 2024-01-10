@@ -56,6 +56,14 @@ body {
     display: block;
 }*/
 
+.text-outline-black {
+    text-shadow:
+        1px 0 1px #000,
+        0 1px 1px #000,
+        -1px 0 1px #000,
+        0 -1px 1px #000;
+}
+
 [data-tooltip] {
     --tooltip-translate-y: 0%;
     --tooltip-opacity: 0;
@@ -102,8 +110,7 @@ body {
 }
 
 [data-tooltip]:hover,
-[data-tooltip]:active,
-[data-tooltip]:active:focus {
+[data-tooltip]:focus {
     --tooltip-translate-y: -100%;
     --tooltip-opacity: 1;
     --tooltip-scale: 1;
@@ -149,8 +156,7 @@ img.city {
 }
 
 .card:hover > img,
-.card:active > img,
-.card:active:focus > img {
+.card:focus > img {
     opacity: 0.5;
 }
 
@@ -159,8 +165,7 @@ img.city {
 }
 
 .card a:hover,
-.card a:active,
-.card a:active:focus {
+.card a:focus {
     color: var(--bs-primary);
 }
 
@@ -273,7 +278,8 @@ img.city {
 
 .btn-svg:hover,
 .btn-svg:active,
-.brn-svg:active:focus {
+.brn-svg:focus {
+    cursor: pointer;
     transform: scale(1.25);
     transition: transform 0.2s ease-in-out;
     z-index: 6;
@@ -289,7 +295,7 @@ img.city {
 
 .btn-svg svg:hover,
 .btn-svg svg:active,
-.btn-svg svg:active:focus {
+.btn-svg svg:focus {
     filter: brightness(1.5);
 }
 
@@ -308,3 +314,55 @@ img.city {
 .svg-delete {
     fill: hsl(0, 100%, 50%);
 }
+
+/* Friend: add, view, edit */
+
+#friend fieldset > * {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    margin-block: 1rem;
+}
+
+#friend label,
+#friend input {
+    position: relative;
+    width: 100%;
+}
+
+#friend input {
+    border: none;
+    border-radius: 0.5em;
+    padding: 0.25em;
+}
+
+#friend label > :first-child:not(input) {
+    position: absolute;
+    left: -0.5rem;
+    transform: translateY(-50%);
+    border-radius: 0.5em;
+    padding: 0.25em 0.5em;
+    background-color: #eee;
+    color: #444;
+    font-size: 0.55em;
+    font-weight: bold;
+    z-index: 3;
+}
+
+#friend fieldset[disabled] input[value] {
+    background: none;
+    border: none;
+    color: inherit;
+}
+
+#friend fieldset[disabled] *:has(input:not([value])),
+#friend fieldset[disabled] *:has(input[value=""]) {
+    display: none;
+}
+
+ 
+
+/*
+* {
+    outline: 1px black dotted;
+}*/

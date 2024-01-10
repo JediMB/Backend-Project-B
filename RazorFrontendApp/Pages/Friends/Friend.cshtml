@@ -1,0 +1,227 @@
+﻿@page
+@model RazorFrontendApp.Pages.Friends.FriendModel
+@using Models
+@{
+    // IFriend Friend = Model.Friend;
+
+    string friendName = Model.Friend is not null ? $": {Model.Friend.FirstName} {Model.Friend.LastName}" : null;
+
+    ViewData["title"] = Model.Mode switch
+    {
+        FormMode.Add    => "Add new friend",
+        FormMode.Edit   => "Edit friend" + friendName,
+        _               => "View friend" + friendName
+    };
+}
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@attribute [IgnoreAntiforgeryToken]
+
+<section id="friend">
+    <div class="fs-4 border-bottom">Friends</div>
+    <h1 class="display-5 fw-normal">@ViewData["Title"]</h1>
+
+    @if (Model.UpdateMessages.Any())
+    {
+        <div class="d-flex flex-column justify-content-between alert alert-success" role="alert">
+            <div class="d-flex flex-row justify-content-between">
+                <h2 class="alert-heading">Updates:</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @foreach (string msg in Model.UpdateMessages)
+            {
+                <div class="mx-3 d-flex flex-row justify-content-between alert alert-light" role="alert">
+                    <div class="d-flex flex-row justify-content-start gap-2">
+                        <svg width="24" height="24"><use xlink:href="#svg-check" href="#svg-check"></use></svg>
+                        @msg
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Model.ErrorMessages.Any())
+    {
+        <div class="d-flex flex-column justify-content-between alert alert-danger" role="alert">
+            <div class="d-flex flex-row justify-content-between">
+                <h2 class="alert-heading">Errors:</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @foreach (string msg in Model.ErrorMessages)
+            {
+                <div class="mx-3 d-flex flex-row justify-content-between alert alert-dark" role="alert">
+                    <div class="d-flex flex-row justify-content-start gap-2">
+                        <svg width="24" height="24"><use xlink:href="#svg-alert" href="#svg-alert"></use></svg>
+                        @msg
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+        </div>
+    }
+
+    <form asp-page-handler="save" id="friend-form" method="post">
+        <input type="hidden" asp-for="Mode" />
+
+        <fieldset id="friend-form__friend" disabled="@(Model.Mode is FormMode.View)">
+            <input type="hidden" asp-for="Friend.Status" />
+            <input type="hidden" asp-for="Friend.FriendId" />
+            <div>
+                <label class="form-label">
+                    <div>First name:</div>
+                    <input required type="text" placeholder="First name" asp-for="Friend.FirstName"
+                           class="form-control" />
+                    <span asp-validation-for="Friend.FirstName" class="invalid-feedback text-outline-black"></span>
+                </label>
+                <label class="form-label">
+                    <div>Last name:</div>
+                    <input required type="text" placeholder="Last name" asp-for="Friend.LastName"
+                           class="form-control" />
+                    <span asp-validation-for="Friend.LastName" class="invalid-feedback text-outline-black"></span>
+                </label>
+            </div>
+            <div>
+                <label class="form-label">
+                    <div>Email:</div>
+                    <input required type="email" placeholder="Email" asp-for="Friend.Email"
+                           class="form-control" />
+                    <span asp-validation-for="Friend.Email" class="invalid-feedback text-outline-black"></span>
+                </label>
+                <label class="form-label">
+                    <div>Birthday:</div>
+                    @if (Model.Mode is not FormMode.View) {
+                        <input type="date" asp-for="Friend.Birthday" class="form-control"
+                            min="@DateTime.Now.AddYears(-100).ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                        <span asp-validation-for="Friend.Birthday" class="invalid-feedback text-outline-black"></span>
+                    }
+                    else {
+                        <input type="text" name="birthday"
+                            value='@(Model.Friend.Birthday.HasValue ? Model.Friend.Birthday.Value.ToString("yyyy-MM-dd") : null)' />
+                    }
+                </label>
+            </div>
+        </fieldset>
+
+        <input type="hidden" asp-for="ValidateAddress" />
+
+        @if (Model.Mode == FormMode.Edit && Model.HasNoAddress)
+        {
+            <div class="pb-2">
+                <button id="btnToggleAddress" type="button" class="w-100 btn btn-light btn-outline-primary"
+                    data-toggled-text="Undo address">Assign address</button>
+            </div>
+        }
+
+        <fieldset id="friend-form__address" disabled="@(Model.Mode is FormMode.View || Model.HasNoAddress)">
+            <input type="hidden" asp-for="Address.Status" value="@(Model.Address?.Status ?? IMStatus.Unknown)" />
+            <input type="hidden" asp-for="Address.AddressId" value="@(Model.Address?.AddressId ?? Guid.NewGuid())" />
+            <div>
+                <label class="form-label">
+                    <div>Street address:</div>
+                    <input required type="text" placeholder="Street address" class="form-control"
+                        asp-for="Address.StreetAddress" />
+                    <span asp-validation-for="Address.StreetAddress" class="invalid-feedback text-outline-black"></span>
+                </label>
+            </div>
+            <div>
+                <label class="form-label">
+                    <div>Zip code:</div>
+                    <input required type="text" placeholder="Zip code" class="form-control"
+                        asp-for="Address.ZipCode" />
+                    <span asp-validation-for="Address.ZipCode" class="invalid-feedback text-outline-black"></span>
+                </label>
+                <label class="form-label">
+                    <div>City:</div>
+                    <input required type="text" placeholder="City" class="form-control"
+                        asp-for="Address.City" />
+                    <span asp-validation-for="Address.City" class="invalid-feedback text-outline-black"></span>
+                </label>
+            </div>
+            <div>
+                <label class="form-label">
+                    <div>Country:</div>
+                    <input required type="text" placeholder="Country" class="form-control"
+                        asp-for="Address.Country" />
+                    <span asp-validation-for="Address.Country" class="invalid-feedback text-outline-black"></span>
+                </label>
+            </div>
+        </fieldset>
+
+        @if (Model.Mode is FormMode.Add || Model.Mode is FormMode.Edit)
+        {
+            <button type="submit" class="w-100 btn btn-primary">Save</button>
+        }
+    </form>
+
+    @if (Model.Mode is FormMode.Edit)
+    {
+        <form asp-page-handler="undo" method="post">
+            <input type="hidden" name="friendId" value="@Model.Friend.FriendId" />
+            <button type="submit" class="w-100 pt-2 btn btn-secondary">Cancel</button>
+        </form>
+
+        <button type="button" class="w-100 btn btn-danger"
+            onclick="document.getElementById('friend-form').submit();">Bypass frontend validation</button>
+    }
+
+    <!-- Quotes attached to the friend are presented as a list, with buttons to edit or remove them -->
+    <!-- A multi-choice select field to add pre-existing quotes to the friend -->
+    @* @if (Model.Friend?.Quotes is not null)
+    {
+        <p><strong>Quotes:</strong> @foreach (var quote in Model.Friend?.Quotes)
+            {
+                <div data-tooltip="@quote.QuoteId">
+                    @quote.Quote
+                    -- @quote.Author
+                </div>
+            }
+        </p>
+    } *@
+
+    <!-- Pets attached to the friend are presented in a list, with buttons to edit or delete them -->
+    <!-- A button-link to a page that lets you add a new pet to the friend -->
+   @*  @if (Model.Friend?.Pets is not null)
+    {
+        <p><strong>Pets:</strong> @foreach (var pet in Model.Friend.Pets)
+            {
+                <div data-tooltip="@pet.PetId">
+                    @pet.Name
+                    the @pet.Mood
+                    @pet.Kind
+                </div>
+            }
+        </p>
+    } *@
+</section>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <symbol id="svg-check" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+    </symbol>
+    <symbol id="svg-info" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+    </symbol>
+    <symbol id="svg-alert" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+    </symbol>
+</svg>
+
+<script>
+    const btnToggle = document.getElementById('btnToggleAddress');
+
+    if (btnToggle) {
+        btnToggle.addEventListener('click', function (event) {
+            const addressForm = document.getElementById('friend-form__address');
+            addressForm.disabled = !addressForm.disabled;
+
+            document.getElementById('ValidateAddress').value = !addressForm.disabled;
+
+            [btnToggle.textContent, btnToggle.dataset.toggledText]
+                = [btnToggle.dataset.toggledText, btnToggle.textContent];
+        });
+    }
+</script>
+
+@section scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
