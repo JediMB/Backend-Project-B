@@ -58,7 +58,7 @@ namespace RazorFrontendApp.Pages.Friends
                     TotalFriends = await _service.CountFriendsAsync(null, Filter);
 
                     TotalPages = (int)Math.Ceiling(Decimal.Divide(TotalFriends, PageSize));
-                    CurrentPage = Math.Min(CurrentPage, TotalPages);
+                    CurrentPage = int.Max(int.Min(CurrentPage, TotalPages), 1);
 
                     Friends = await _service.ReadFriendsAsync(null, false, Filter, CurrentPage-1, PageSize);
                     return Page();
@@ -75,7 +75,7 @@ namespace RazorFrontendApp.Pages.Friends
                 TotalFriends = await _service.CountFriendsByLocationAsync(null, noAddress, country, city, Filter);
 
                 TotalPages = (int)Math.Ceiling(Decimal.Divide(TotalFriends, PageSize));
-                CurrentPage = Math.Min(CurrentPage, TotalPages);
+                CurrentPage = int.Max(int.Min(CurrentPage, TotalPages), 1);
 
                 Friends = await _service.ReadFriendsByLocationAsync(null, noAddress, country, city, Filter, CurrentPage-1, PageSize);
 

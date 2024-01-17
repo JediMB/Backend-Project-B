@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Models;
 using Models.DTO;
 using Services;
@@ -32,13 +33,85 @@ namespace RazorFrontendApp.Pages.Friends
         public bool HasValidationErrors => InvalidKeys.Any();
         public IEnumerable<KeyValuePair<string, ModelStateEntry>> InvalidKeys { get; set; }
 
-        public async Task<IActionResult> OnGet(string action, Guid id)
+        public async Task<IActionResult> OnGet(FormMode action, Guid id)
+        {
+            Mode = action;
+
+            if (Mode == FormMode.Add)
+                return Page();
+
+            try
+            {
+                if (id == Guid.Empty)
+                    throw new ArgumentException("No friend id given.");
+
+                IFriend friend = await _service.ReadFriendAsync(null, id, false);
+                
+                Friend = new(friend);
+
+                if (friend.Address != null)
+                {
+                    Address = new(friend.Address);
+                    ValidateAddress = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessages.Add(ex.Message);
+            }
+
+            return Page();
+        }
+
+        public async Task<IActionResult> OnGetAdded(FormMode action, Guid id)
+        {
+            UpdateMessages.Add($"Added new friend ({id})");
+
+            return await OnGet(action, id);
+        }
+
+        public async Task<IActionResult> OnPostAddFriend()
+        {
+            string[] validationKeys = new string[]
+                {
+                    "Friend.FirstName",
+                    "Friend.LastName" ,
+                    "Friend.Email",
+                    "Friend.Birthday"
+                };
+
+            if (IsInvalid(validationKeys))
+                return Page();
+
+            try
+            {
+                csFriendCUdto newFriend = Friend.UpdateModel(new csFriendCUdto());
+
+                IFriend addedFriend = await _service.CreateFriendAsync(null, newFriend)
+                    ?? throw new Exception("New friend was not successfully added.");
+
+                return RedirectToPage("Friend", "Added", new { action = FormMode.Edit, id = addedFriend.FriendId });
+            }
+            catch (Exception ex)
+            {
+                ErrorMessages.Add(ex.Message);
+            }
+
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostUpdateFriend()
+        {
+            return Page();
+        }
+
+        /*public async Task<IActionResult> OnGet(string action, Guid id)
         {
             Mode = action switch
             {
-                "add"   => FormMode.Add,
-                "edit"  => FormMode.Edit,
-                _       => FormMode.View
+                "add" => FormMode.Add,
+                "edit" => FormMode.Edit,
+                _ => FormMode.View
             };
 
             if (Mode == FormMode.Add)
@@ -64,95 +137,95 @@ namespace RazorFrontendApp.Pages.Friends
             }
 
             return Page();
-        }
+        }*/
 
-        public async Task<IActionResult> OnPostSave()
-        {
-            string[] validationKeys = null;
+        //public async Task<IActionResult> OnPostSave()
+        //{
+        //    string[] validationKeys = null;
 
-            if (ValidateAddress is false)
-            {
-                validationKeys = new string[]
-                {
-                    "Friend.FriendId",
-                    "Friend.FirstName",
-                    "Friend.LastName" ,
-                    "Friend.Email",
-                    "Friend.Birthday"
-                };
-                Address = null;
-            }
-            
-            if (IsInvalid(validationKeys))
-                return Page();
+        //    if (ValidateAddress is false)
+        //    {
+        //        validationKeys = new string[]
+        //        {
+        //            "Friend.FriendId",
+        //            "Friend.FirstName",
+        //            "Friend.LastName" ,
+        //            "Friend.Email",
+        //            "Friend.Birthday"
+        //        };
+        //        Address = null;
+        //    }
 
-            if (Address is not null)
-            {
-                switch(Address.Status)
-                {
-                    case IMStatus.Unknown:
-                        csAddressCUdto newAddress = Address.UpdateModel(new csAddressCUdto());
+        //    if (IsInvalid(validationKeys))
+        //        return Page();
 
-                        IAddress createdAddress = await _service.CreateAddressAsync(null, newAddress);
-                        Address.AddressId = createdAddress.AddressId;
-                        Friend.AddressId = createdAddress.AddressId;
+        //    if (Address is not null)
+        //    {
+        //        switch(Address.Status)
+        //        {
+        //            case IMStatus.Unknown:
+        //                csAddressCUdto newAddress = Address.UpdateModel(new csAddressCUdto());
 
-                        UpdateMessages.Add($"Added new address: {Address.StreetAddress}, {Address.ZipCode} {Address.City}, {Address.Country}");
-                        Address.Status = IMStatus.Inserted;
-                        break;
+        //                IAddress createdAddress = await _service.CreateAddressAsync(null, newAddress);
+        //                Address.AddressId = createdAddress.AddressId;
+        //                Friend.AddressId = createdAddress.AddressId;
 
-                    case IMStatus.Unchanged:
-                    case IMStatus.Inserted:
-                    case IMStatus.Modified:
-                        csAddressCUdto changedAddress = new(await _service.ReadAddressAsync(null, Address.AddressId, false));
-                        changedAddress = Address.UpdateModel(changedAddress);
+        //                UpdateMessages.Add($"Added new address: {Address.StreetAddress}, {Address.ZipCode} {Address.City}, {Address.Country}");
+        //                Address.Status = IMStatus.Inserted;
+        //                break;
 
-                        IAddress response = await _service.UpdateAddressAsync(null, changedAddress);
+        //            case IMStatus.Unchanged:
+        //            case IMStatus.Inserted:
+        //            case IMStatus.Modified:
+        //                csAddressCUdto changedAddress = new(await _service.ReadAddressAsync(null, Address.AddressId, false));
+        //                changedAddress = Address.UpdateModel(changedAddress);
 
-                        if (response is null || response.AddressId != Address.AddressId)
-                            throw new Exception($"Something went wrong when updating address {Address.AddressId}");
+        //                IAddress response = await _service.UpdateAddressAsync(null, changedAddress);
 
-                        UpdateMessages.Add($"Updated address {Address.AddressId}");
-                        Address.Status = IMStatus.Modified;
-                        break;
-                }
-            }
+        //                if (response is null || response.AddressId != Address.AddressId)
+        //                    throw new Exception($"Something went wrong when updating address {Address.AddressId}");
 
-            switch(Friend.Status)
-            {
-                case IMStatus.Unknown:
-                    csFriendCUdto newFriend = Friend.UpdateModel(new csFriendCUdto());
+        //                UpdateMessages.Add($"Updated address {Address.AddressId}");
+        //                Address.Status = IMStatus.Modified;
+        //                break;
+        //        }
+        //    }
 
-                    await _service.CreateFriendAsync(null, newFriend);
+        //    switch(Friend.Status)
+        //    {
+        //        case IMStatus.Unknown:
+        //            csFriendCUdto newFriend = Friend.UpdateModel(new csFriendCUdto());
 
-                    UpdateMessages.Add($"Added new friend: {Friend.FirstName} {Friend.LastName} ({Friend.FriendId})");
-                    Friend.Status = IMStatus.Inserted;
-                    break;
+        //            await _service.CreateFriendAsync(null, newFriend);
 
-                case IMStatus.Unchanged:
-                case IMStatus.Inserted:
-                case IMStatus.Modified:
-                    csFriendCUdto changedFriend = new(await _service.ReadFriendAsync(null, Friend.FriendId, false));
-                    changedFriend = Friend.UpdateModel(changedFriend);
+        //            UpdateMessages.Add($"Added new friend: {Friend.FirstName} {Friend.LastName} ({Friend.FriendId})");
+        //            Friend.Status = IMStatus.Inserted;
+        //            break;
 
-                    IFriend response = await _service.UpdateFriendAsync(null, changedFriend);
+        //        case IMStatus.Unchanged:
+        //        case IMStatus.Inserted:
+        //        case IMStatus.Modified:
+        //            csFriendCUdto changedFriend = new(await _service.ReadFriendAsync(null, Friend.FriendId, false));
+        //            changedFriend = Friend.UpdateModel(changedFriend);
 
-                    if (response is null || response.FriendId != Friend.FriendId)
-                        throw new Exception($"Something went wrong when updating {Friend.FirstName} {Friend.LastName} ({Friend.FriendId})");
+        //            IFriend response = await _service.UpdateFriendAsync(null, changedFriend);
 
-                    UpdateMessages.Add($"Updated friend: {Friend.FirstName} {Friend.LastName} ({Friend.FriendId})");
-                    Friend.Status = IMStatus.Modified;
-                    break;
-            }
+        //            if (response is null || response.FriendId != Friend.FriendId)
+        //                throw new Exception($"Something went wrong when updating {Friend.FirstName} {Friend.LastName} ({Friend.FriendId})");
 
-            return Page();
-        }
+        //            UpdateMessages.Add($"Updated friend: {Friend.FirstName} {Friend.LastName} ({Friend.FriendId})");
+        //            Friend.Status = IMStatus.Modified;
+        //            break;
+        //    }
 
-        public async Task<IActionResult> OnPostUndo(Guid friendId)
-        {
-            UpdateMessages.Add("Changes discarded");
-            return await OnGet("edit", friendId);
-        }
+        //    return Page();
+        //}
+
+        //public async Task<IActionResult> OnPostUndo(Guid friendId)
+        //{
+        //    UpdateMessages.Add("Changes discarded");
+        //    return await OnGet("edit", friendId);
+        //}
 
         public FriendModel(IFriendsService service, ILogger<FriendModel> logger)
         {
@@ -191,7 +264,6 @@ namespace RazorFrontendApp.Pages.Friends
 
     public class FriendIM
     {
-        public IMStatus Status { get; set; } = IMStatus.Unknown;
         public Guid FriendId { get; set; } = Guid.NewGuid();
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "Please input a first name")]
@@ -218,7 +290,6 @@ namespace RazorFrontendApp.Pages.Friends
 
         public FriendIM(IFriend original)
         {
-            Status = IMStatus.Unchanged;
             FriendId = original.FriendId;
             FirstName = original.FirstName;
             LastName = original.LastName;
@@ -229,7 +300,6 @@ namespace RazorFrontendApp.Pages.Friends
 
         public FriendIM(FriendIM original)
         {
-            Status = original.Status;
             FriendId = original.FriendId;
             FirstName = original.FirstName;
             LastName = original.LastName;

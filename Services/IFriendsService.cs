@@ -31,8 +31,9 @@ namespace Services
         public Task<IFriend> UpdateFriendAsync(loginUserSessionDto usr, csFriendCUdto item);
         public Task<IFriend> CreateFriendAsync(loginUserSessionDto usr, csFriendCUdto item);
 
-        public Task<List<IAddress>> ReadAddressesAsync(loginUserSessionDto usr, bool seeded, bool flat, string filter, int pageNumber, int pageSize);
         public Task<IAddress> ReadAddressAsync(loginUserSessionDto usr, Guid id, bool flat);
+        public Task<int> CountAddressesAsync(loginUserSessionDto usr, string filter, Guid exceptionId);
+        public Task<List<IAddress>> ReadAddressesAsync(loginUserSessionDto usr, /*bool seeded,*/ bool flat, string filter, Guid exceptionId, int pageNumber, int pageSize);
         public Task<IAddress> DeleteAddressAsync(loginUserSessionDto usr, Guid id);
         public Task<IAddress> UpdateAddressAsync(loginUserSessionDto usr, csAddressCUdto item);
         public Task<IAddress> CreateAddressAsync(loginUserSessionDto usr, csAddressCUdto item);

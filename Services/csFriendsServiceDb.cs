@@ -64,8 +64,9 @@ namespace Services
         public Task<IFriend> UpdateFriendAsync(loginUserSessionDto usr, csFriendCUdto item) => _repo.UpdateFriendAsync(usr, item);
         public Task<IFriend> CreateFriendAsync(loginUserSessionDto usr, csFriendCUdto item) => _repo.CreateFriendAsync(usr, item);
 
-        public Task<List<IAddress>> ReadAddressesAsync(loginUserSessionDto usr, bool seeded, bool flat, string filter, int pageNumber, int pageSize) => _repo.ReadAddressesAsync(usr, seeded, flat, filter, pageNumber, pageSize);
         public Task<IAddress> ReadAddressAsync(loginUserSessionDto usr, Guid id, bool flat) => _repo.ReadAddressAsync(usr, id, flat);
+        public Task<int> CountAddressesAsync(loginUserSessionDto usr, string filter, Guid exceptionId) => _repo.CountAddressesAsync(usr, filter, exceptionId);
+        public Task<List<IAddress>> ReadAddressesAsync(loginUserSessionDto usr, /* bool seeded, */ bool flat, string filter, Guid exceptionId, int pageNumber, int pageSize) => _repo.ReadAddressesAsync(usr, /* seeded, */ flat, filter, exceptionId, pageNumber, pageSize);
         public Task<IAddress> DeleteAddressAsync(loginUserSessionDto usr, Guid id) => _repo.DeleteAddressAsync(usr, id);
         public Task<IAddress> UpdateAddressAsync(loginUserSessionDto usr, csAddressCUdto item) => _repo.UpdateAddressAsync(usr, item);
         public Task<IAddress> CreateAddressAsync(loginUserSessionDto usr, csAddressCUdto item) => _repo.CreateAddressAsync(usr, item);

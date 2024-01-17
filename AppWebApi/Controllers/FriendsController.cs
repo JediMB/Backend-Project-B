@@ -31,6 +31,17 @@ namespace AppWebApi.Controllers
         IFriendsService _service = null;
         ILogger<FriendsController> _logger = null;
 
+        //GET: api/friends/count
+        [HttpGet()]
+        [ActionName("Count")]
+        [ProducesResponseType(200, Type = typeof(int))]
+        [ProducesResponseType(400, Type = typeof(string))]
+        public async Task<IActionResult> Count(string filter = null)
+        {
+            int count = await _service.CountFriendsAsync(_usr, filter);
+            return Ok(count);
+        }
+
         //GET: api/friends/read
         [HttpGet()]
         [ActionName("Read")]
@@ -66,6 +77,22 @@ namespace AppWebApi.Controllers
 
             var items = await _service.ReadFriendsAsync(_usr, /* _seeded, */ _flat, filter?.Trim()?.ToLower(), _pageNr, _pageSize);
             return Ok(items);
+        }
+
+        //GET: api/friends/count
+        [HttpGet()]
+        [ActionName("CountByLocation")]
+        [ProducesResponseType(200, Type = typeof(int))]
+        [ProducesResponseType(400, Type = typeof(string))]
+        public async Task<IActionResult> CountByLocation(string noAddress = "false",
+            string country = null, string city = null, string filter = null)
+        {
+            bool _noAddress = false;
+            if (!bool.TryParse(noAddress, out _noAddress))
+                return BadRequest("noAddress format error");
+            
+            int count = await _service.CountFriendsByLocationAsync(_usr, _noAddress, country, city, filter);
+            return Ok(count);
         }
 
         //GET: api/friends/readbylocation

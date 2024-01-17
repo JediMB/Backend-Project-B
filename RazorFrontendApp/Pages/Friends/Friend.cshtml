@@ -1,9 +1,6 @@
 ﻿@page
 @model RazorFrontendApp.Pages.Friends.FriendModel
-@using Models
 @{
-    // IFriend Friend = Model.Friend;
-
     string friendName = Model.Friend is not null ? $": {Model.Friend.FirstName} {Model.Friend.LastName}" : null;
 
     ViewData["title"] = Model.Mode switch
@@ -18,7 +15,7 @@
 
 <section id="friend">
     <div class="fs-4 border-bottom">Friends</div>
-    <h1 class="display-5 fw-normal">@ViewData["Title"]</h1>
+    <h1 class="display-5 fw-normal">@ViewData["title"]</h1>
 
     @if (Model.UpdateMessages.Any())
     {
@@ -60,7 +57,113 @@
         </div>
     }
 
-    <form asp-page-handler="save" id="friend-form" method="post">
+    <form id="friend-form" method="post" class="friend-form bg-white text-black rounded-3 px-1 pt-3 mb-3">
+        <div class="container d-flex flex-row">
+            <div class="col-11">
+                <input type="hidden" asp-for="Mode" />
+                <input type="hidden" asp-for="Friend.FriendId" />
+                @{
+                    bool showEmptyFields = Model.Mode is not FormMode.View;
+                    string inputClasses = $"form-control{(Model.Mode is not FormMode.Add ? " formless" : null)}";
+                }
+                <fieldset id="friend-fields" disabled="@(Model.Mode is not FormMode.Add ? "disabled" : null)">
+                    <div>
+                        @if (showEmptyFields || string.IsNullOrEmpty(Model.Friend.FirstName) is false)
+                        {
+                            <label class="form-label">
+                                <div>First name:</div>
+                                <input required type="text" placeholder="First name" asp-for="Friend.FirstName"
+                                       class="@(inputClasses)" />
+                                <span asp-validation-for="Friend.FirstName" class="invalid-feedback text-outline-black"></span>
+                            </label>
+                        }
+                        @if (showEmptyFields || string.IsNullOrEmpty(Model.Friend.LastName) is false)
+                        {
+                            <label class="form-label">
+                                <div>Last name:</div>
+                                <input required type="text" placeholder="Last name" asp-for="Friend.LastName"
+                                       class="@(inputClasses)" />
+                                <span asp-validation-for="Friend.LastName" class="invalid-feedback text-outline-black"></span>
+                            </label>
+                        }
+                    </div>
+                    <div>
+                        @if (showEmptyFields || string.IsNullOrEmpty(Model.Friend.Email) is false)
+                        {
+                            <label class="form-label">
+                                <div>Email:</div>
+                                <input required type="email" placeholder="Email" asp-for="Friend.Email"
+                                       class="@(inputClasses)" />
+                                <span asp-validation-for="Friend.Email" class="invalid-feedback text-outline-black"></span>
+                            </label>
+                        }
+                        @if (showEmptyFields || Model.Friend.Birthday.HasValue)
+                        {
+                            <label class="form-label">
+                                <div>Birthday:</div>
+                                @if (Model.Mode is not FormMode.View)
+                                {
+                                    <input type="date" asp-for="Friend.Birthday" class="@(inputClasses)"
+                                           min="@DateTime.Now.AddYears(-100).ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="Friend.Birthday" class="invalid-feedback text-outline-black"></span>
+                                }
+                                else
+                                {
+                                    <input type="text" name="Friend.Birthday" class="@(inputClasses)"
+                                           value='@(Model.Friend.Birthday.HasValue ? Model.Friend.Birthday.Value.ToString("yyyy-MM-dd") : null)' />
+                                }
+                            </label>
+                        }
+                    </div>
+                </fieldset>
+            </div>
+            <div class="col-1 d-flex flex-column align-items-end">
+                @if (Model.Mode is FormMode.Edit)
+                {
+                    <button data-btn-edit type="button" class="btn-svg" data-tooltip="Edit">
+                        <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                    </button>
+                    <button data-btn-cancel type="reset" class="d-none btn-svg svg-delete" data-tooltip="Cancel">
+                        <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                    </button>
+                }
+            </div>
+        </div>
+        @if (Model.Mode is not FormMode.View)
+        {
+            <div class="px-3 pb-3">
+                @if (Model.Mode is FormMode.Add)
+                {
+                    <button type="submit" asp-page-handler="AddFriend" class="w-100 btn btn-primary">
+                        Save
+                    </button>
+                    <button type="reset" class="w-100 mt-2 btn btn-secondary">
+                        Clear
+                    </button>
+                }
+                else
+                {
+                    <button type="submit" asp-page-handler="UpdateFriend" class="d-none w-100 btn btn-primary">
+                        Update
+                    </button>
+                }
+            </div>
+        }
+    </form>
+
+    @if (Model.Mode is FormMode.Edit)
+    {
+        <a data-btn-assign class="w-100 btn btn-primary" asp-area=""
+            asp-page="/Friends/Friend/Address" asp-route-friendId="@Model.Friend.FriendId">
+            Assign address
+        </a>
+    }
+
+    <form id="address-form" method="post" class="friend-form bg-white text-black rounded-3 px-1 pt-3 mt-3">
+        
+    </form>
+
+    @* <form asp-page-handler="save" id="friend-form" method="post">
         <input type="hidden" asp-for="Mode" />
 
         <fieldset id="friend-form__friend" disabled="@(Model.Mode is FormMode.View)">
@@ -151,9 +254,9 @@
         {
             <button type="submit" class="w-100 btn btn-primary">Save</button>
         }
-    </form>
+    </form> *@
 
-    @if (Model.Mode is FormMode.Edit)
+@*     @if (Model.Mode is FormMode.Edit)
     {
         <form asp-page-handler="undo" method="post">
             <input type="hidden" name="friendId" value="@Model.Friend.FriendId" />
@@ -162,7 +265,7 @@
 
         <button type="button" class="w-100 btn btn-danger"
             onclick="document.getElementById('friend-form').submit();">Bypass frontend validation</button>
-    }
+    } *@
 
     <!-- Quotes attached to the friend are presented as a list, with buttons to edit or remove them -->
     <!-- A multi-choice select field to add pre-existing quotes to the friend -->
@@ -204,23 +307,45 @@
     <symbol id="svg-alert" fill="currentColor" viewBox="0 0 16 16">
         <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
     </symbol>
+    <symbol id="svg-edit" viewBox="0 -960 960 960">
+        <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
+    </symbol>
+    <svg id="svg-cancel" viewBox="0 -960 960 960">
+        <path d="m336-280 144-144 144 144 56-56-144-144 144-144-56-56-144 144-144-144-56 56 144 144-144 144 56 56ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+    </svg>
 </svg>
 
-<script>
-    const btnToggle = document.getElementById('btnToggleAddress');
+@if (Model.Mode is FormMode.Edit)
+{
+    <script>
+        const editButtons = Array.from(document.querySelectorAll('[data-btn-edit]'));
+        const assignButtons = Array.from(document.querySelectorAll('[data-btn-assign]'));
 
-    if (btnToggle) {
-        btnToggle.addEventListener('click', function (event) {
-            const addressForm = document.getElementById('friend-form__address');
-            addressForm.disabled = !addressForm.disabled;
+        editButtons.forEach(editBtn => {
+            editBtn.addEventListener('click', function (event) {
+                editBtn.form.getElementsByTagName('fieldset')[0].disabled = null;
 
-            document.getElementById('ValidateAddress').value = !addressForm.disabled;
-
-            [btnToggle.textContent, btnToggle.dataset.toggledText]
-                = [btnToggle.dataset.toggledText, btnToggle.textContent];
+                const formButtons = Array.from(editBtn.form.getElementsByTagName('button'));
+                formButtons.forEach(formBtn => formBtn.classList.toggle('d-none'));
+                editButtons.forEach(eBtn => { if (eBtn.form !== editBtn.form) eBtn.classList.add('d-none'); });
+                assignButtons.forEach(aBtn => aBtn.classList.add('d-none'));
+            });
         });
-    }
-</script>
+
+        const cancelButtons = Array.from(document.querySelectorAll('[data-btn-cancel]'));
+
+        cancelButtons.forEach(cBtn => {
+            cBtn.addEventListener('click', function (event) {
+                cBtn.form.getElementsByTagName('fieldset')[0].disabled = 'disabled';
+
+                const formButtons = Array.from(cBtn.form.getElementsByTagName('button'));
+                formButtons.forEach(formBtn => formBtn.classList.toggle('d-none'));
+                editButtons.forEach(eBtn => { if (eBtn.form !== cBtn.form) eBtn.classList.remove('d-none'); });
+                assignButtons.forEach(aBtn => aBtn.classList.remove('d-none'));
+            });
+        });
+    </script>
+}
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />

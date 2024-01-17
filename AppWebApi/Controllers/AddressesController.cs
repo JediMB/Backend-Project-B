@@ -28,25 +28,46 @@ namespace AppWebApi.Controllers
         IFriendsService _service = null;
         ILogger<AddressesController> _logger = null;
 
+        //GET: api/addresses/count
+        [HttpGet()]
+        [ActionName("Count")]
+        [ProducesResponseType(200, Type = typeof(int))]
+        [ProducesResponseType(400, Type = typeof(string))]
+        public async Task<IActionResult> Count(string filter = null, string exceptionId = null)
+        {
+            Guid _exceptionId = Guid.Empty;
+            if (exceptionId is not null && !Guid.TryParse(exceptionId, out _exceptionId))
+                return BadRequest("exceptionId format error");
+
+            int count = await _service.CountAddressesAsync(_usr, filter, _exceptionId);
+            return Ok(count);
+        }
+
         //GET: api/addresses/read
         [HttpGet()]
         [ActionName("Read")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<IFriend>))]
         [ProducesResponseType(400, Type = typeof(string))]
-        public async Task<IActionResult> Read(string seeded = "true", string flat = "true",
-            string filter = null, string pageNr = "0", string pageSize = "1000")
+        public async Task<IActionResult> Read(/*string seeded = "true",*/ string flat = "true",
+            string filter = null, string exceptionId = null, string pageNr = "0", string pageSize = "1000")
         {
             //Convert and check parameters
-            bool _seeded = true;
+           /* bool _seeded = true;
             if (!bool.TryParse(seeded, out _seeded))
             {
                 return BadRequest("seeded format error");
-            }
+            }*/
 
             bool _flat = true;
             if (!bool.TryParse(flat, out _flat))
             {
                 return BadRequest("flat format error");
+            }
+
+            Guid _exceptionId = Guid.Empty;
+            if (!Guid.TryParse(exceptionId, out _exceptionId))
+            {
+                return BadRequest("exception guid format error");
             }
 
             int _pageNr = 0;
@@ -61,7 +82,7 @@ namespace AppWebApi.Controllers
                 return BadRequest("pageSize format error");
             }
 
-            var items = await _service.ReadAddressesAsync(_usr, _seeded, _flat, filter?.Trim()?.ToLower(), _pageNr, _pageSize);
+            var items = await _service.ReadAddressesAsync(_usr, /* _seeded, */ _flat, filter?.Trim()?.ToLower(), _exceptionId, _pageNr, _pageSize);
             return Ok(items);
         }
 

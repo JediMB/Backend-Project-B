@@ -317,26 +317,26 @@ img.city {
 
 /* Friend: add, view, edit */
 
-#friend fieldset > * {
+.friend-form fieldset > div {
     display: flex;
     flex-direction: row;
     gap: 1rem;
     margin-block: 1rem;
 }
 
-#friend label,
-#friend input {
+.friend-form label,
+.friend-form input {
     position: relative;
     width: 100%;
 }
 
-#friend input {
+.friend-form input {
     border: none;
     border-radius: 0.5em;
     padding: 0.25em;
 }
 
-#friend label > :first-child:not(input) {
+.friend-form label > :first-child:not(input) {
     position: absolute;
     left: -0.5rem;
     transform: translateY(-50%);
@@ -349,20 +349,30 @@ img.city {
     z-index: 3;
 }
 
-#friend fieldset[disabled] input[value] {
+.formless:disabled {
     background: none;
     border: none;
     color: inherit;
+    pointer-events: none;
 }
 
-#friend fieldset[disabled] *:has(input:not([value])),
-#friend fieldset[disabled] *:has(input[value=""]) {
-    display: none;
+/* Address */
+
+.address-selection label {
+    width: 100%;
+    padding: 1rem;
+    background-color: #fff;
+    color: #000;
 }
 
- 
+.address-selection label:hover {
+    opacity: 0.75;
+}
 
-/*
-* {
+.address-selection label:has( input:checked) {
+    background-color: #0f5;
+}
+
+/** {
     outline: 1px black dotted;
 }*/

@@ -607,11 +607,27 @@ public class csFriendsDbRepos
         }
     }
 
-    public async Task<List<IAddress>> ReadAddressesAsync(loginUserSessionDto usr, bool seeded, bool flat, string filter, int pageNumber, int pageSize)
+    public async Task<int> CountAddressesAsync(loginUserSessionDto usr, string filter, Guid exceptionId)
+    {
+        using var db = csMainDbContext.DbContext(_dblogin);
+
+        filter = filter?.ToLower() ?? "";
+
+        var _query = db.Addresses.AsNoTracking();
+
+        return await _query
+            .Where(i => i.AddressId != exceptionId &&
+                        (i.StreetAddress.ToLower().Contains(filter) ||
+                        i.City.ToLower().Contains(filter) ||
+                        i.Country.ToLower().Contains(filter)))
+            .CountAsync();
+    }
+
+    public async Task<List<IAddress>> ReadAddressesAsync(loginUserSessionDto usr,/* bool seeded,*/ bool flat, string filter, Guid exceptionId, int pageNumber, int pageSize)
     {
         using (var db = csMainDbContext.DbContext(_dblogin))
         {
-            filter ??= "";
+            filter = filter?.ToLower() ?? "";
             if (!flat)
             {
                 //make sure the model is fully populated, try without include.
@@ -621,10 +637,14 @@ public class csFriendsDbRepos
                 return await _addresses
 
                     //Adding filter functionality
-                    .Where(i => i.Seeded == seeded
+                    .Where(i => /*i.Seeded == seeded */ i.AddressId != exceptionId
                             && (i.StreetAddress.ToLower().Contains(filter) ||
                                 i.City.ToLower().Contains(filter) ||
                                 i.Country.ToLower().Contains(filter)))
+                    .OrderBy(i => i.Country)
+                    .ThenBy(i => i.City)
+                    .ThenBy(i => i.ZipCode)
+                    .ThenBy(i => i.StreetAddress)
 
                     //Adding paging
                     .Skip(pageNumber * pageSize)
@@ -641,10 +661,14 @@ public class csFriendsDbRepos
                 return await _addresses
 
                     //Adding filter functionality
-                    .Where(i => i.Seeded == seeded
-                            && (i.StreetAddress.ToLower().Contains(filter) ||
+                    .Where(i => /*i.Seeded == seeded
+                            &&*/ (i.StreetAddress.ToLower().Contains(filter) ||
                                 i.City.ToLower().Contains(filter) ||
                                 i.Country.ToLower().Contains(filter)))
+                    .OrderBy(i => i.Country)
+                    .ThenBy(i => i.City)
+                    .ThenBy(i => i.ZipCode)
+                    .ThenBy(i => i.StreetAddress)
 
                     //Adding paging
                     .Skip(pageNumber * pageSize)
