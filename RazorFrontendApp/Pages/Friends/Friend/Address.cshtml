@@ -101,8 +101,7 @@
             @for (int i = 0; i < Model.Addresses.Count; i++)
             {
                 <div>
-                    <label class="@(i == 0 ? " rounded-top border-bottom" :
-                        (i == Model.Addresses.Count-1 ? " rounded-bottom" : " border-bottom"))">
+                    <label class="@(i == 0 ? "rounded-top" : null)@(i == Model.Addresses.Count-1 ? " rounded-bottom" : " border-bottom")">
                         <input type="radio" required asp-for="SelectedAddressId" class="d-none" 
                             id="address-@Model.Addresses[i].AddressId" value="@Model.Addresses[i].AddressId" />
                         @Model.Addresses[i].StreetAddress, @Model.Addresses[i].ZipCode @Model.Addresses[i].City, @Model.Addresses[i].Country

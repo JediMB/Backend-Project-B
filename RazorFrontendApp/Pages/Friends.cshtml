@@ -26,7 +26,8 @@
             @foreach (var country in Model.Countries)
             {
                 <div class="card">
-                    @{
+                    @if(new[] {"Denmark", "Finland", "Norway", "Sweden"}.Contains(country.name))
+                    {
                         string imageUri = "/images/" + country.name + ".png";
                         <img src="@imageUri" class="flag" />
                     }

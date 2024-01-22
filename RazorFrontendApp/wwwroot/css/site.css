@@ -290,7 +290,7 @@ img.city {
     width: 24px;
     height: 24px;
     inset: 0;
-    filter: drop-shadow(0 0 0.1rem #000);
+    /*filter: drop-shadow(0 0 0.1rem #000);*/
 }
 
 .btn-svg svg:hover,
@@ -317,26 +317,31 @@ img.city {
 
 /* Friend: add, view, edit */
 
-.friend-form fieldset > div {
+[data-friend-form] fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+[data-friend-form] fieldset > div {
     display: flex;
     flex-direction: row;
     gap: 1rem;
-    margin-block: 1rem;
 }
 
-.friend-form label,
-.friend-form input {
+[data-friend-form] label,
+[data-friend-form] input {
     position: relative;
     width: 100%;
 }
 
-.friend-form input {
-    border: none;
+[data-friend-form] input {
+    border: 1px #999 solid;
     border-radius: 0.5em;
     padding: 0.25em;
 }
 
-.friend-form label > :first-child:not(input) {
+[data-friend-form] label > :first-child:not(input) {
     position: absolute;
     left: -0.5rem;
     transform: translateY(-50%);
@@ -349,11 +354,41 @@ img.city {
     z-index: 3;
 }
 
-.formless:disabled {
+.formless:disabled,
+.formless:read-only {
     background: none;
     border: none;
     color: inherit;
     pointer-events: none;
+    resize: none;
+}
+
+.formless:disabled:focus,
+.formless:read-only:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+
+[data-subform-add] {
+    opacity: 1;
+    max-height: 1000px;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+    overflow: hidden;
+    transition:
+        max-height 1s ease-in-out,
+        opacity 0.5s linear;
+}
+
+[data-subform-add].closed {
+    opacity: 0;
+    max-height: 0;
+    padding: 0;
+}
+
+[data-subform-add].closed * {
+    display: none;
 }
 
 /* Address */

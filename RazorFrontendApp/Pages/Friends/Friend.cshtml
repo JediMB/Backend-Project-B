@@ -5,8 +5,8 @@
 
     ViewData["title"] = Model.Mode switch
     {
-        FormMode.Add    => "Add new friend",
-        FormMode.Edit   => "Edit friend" + friendName,
+        FormMode.add    => "Add new friend",
+        FormMode.edit   => "Edit friend" + friendName,
         _               => "View friend" + friendName
     };
 }
@@ -57,23 +57,39 @@
         </div>
     }
 
-    <form id="friend-form" method="post" class="friend-form bg-white text-black rounded-3 px-1 pt-3 mb-3">
-        <div class="container d-flex flex-row">
-            <div class="col-11">
+    @{
+        bool showEmptyFields = Model.Mode is not FormMode.view;
+        string inputClasses = $"form-control{(Model.Mode is not FormMode.add ? " formless" : null)}";
+    }
+
+    <section class="bg-dark text-white rounded-3 mb-3">
+        <form id="friend-form" method="post" data-friend-form>
+            <div class="p-3 d-flex flex-row justify-content-between align-items-center">
+                <h2 class="fs-3 m-0">Friend</h2>
+                @if (Model.Mode is FormMode.edit)
+                {
+                    <div class="d-flex flex-row gap-2">
+                        <button data-btn-edit type="button" class="btn btn-svg" data-tooltip="Edit friend">
+                            <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                        </button>
+                        <button data-btn-cancel type="reset" class="d-none btn btn-svg" data-tooltip="Cancel">
+                            <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                        </button>
+                    </div>
+                }
+            </div>
+            <div class="container bg-white text-black rounded-bottom pt-4 pb-3 px-3">
                 <input type="hidden" asp-for="Mode" />
                 <input type="hidden" asp-for="Friend.FriendId" />
-                @{
-                    bool showEmptyFields = Model.Mode is not FormMode.View;
-                    string inputClasses = $"form-control{(Model.Mode is not FormMode.Add ? " formless" : null)}";
-                }
-                <fieldset id="friend-fields" disabled="@(Model.Mode is not FormMode.Add ? "disabled" : null)">
+
+                <fieldset id="friend-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
                     <div>
                         @if (showEmptyFields || string.IsNullOrEmpty(Model.Friend.FirstName) is false)
                         {
                             <label class="form-label">
                                 <div>First name:</div>
                                 <input required type="text" placeholder="First name" asp-for="Friend.FirstName"
-                                       class="@(inputClasses)" />
+                                        class="@inputClasses" />
                                 <span asp-validation-for="Friend.FirstName" class="invalid-feedback text-outline-black"></span>
                             </label>
                         }
@@ -82,7 +98,7 @@
                             <label class="form-label">
                                 <div>Last name:</div>
                                 <input required type="text" placeholder="Last name" asp-for="Friend.LastName"
-                                       class="@(inputClasses)" />
+                                        class="@inputClasses" />
                                 <span asp-validation-for="Friend.LastName" class="invalid-feedback text-outline-black"></span>
                             </label>
                         }
@@ -93,7 +109,7 @@
                             <label class="form-label">
                                 <div>Email:</div>
                                 <input required type="email" placeholder="Email" asp-for="Friend.Email"
-                                       class="@(inputClasses)" />
+                                        class="@inputClasses" />
                                 <span asp-validation-for="Friend.Email" class="invalid-feedback text-outline-black"></span>
                             </label>
                         }
@@ -101,171 +117,307 @@
                         {
                             <label class="form-label">
                                 <div>Birthday:</div>
-                                @if (Model.Mode is not FormMode.View)
+                                @if (Model.Mode is not FormMode.view)
                                 {
-                                    <input type="date" asp-for="Friend.Birthday" class="@(inputClasses)"
-                                           min="@DateTime.Now.AddYears(-100).ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                    <input type="date" asp-for="Friend.Birthday" class="@inputClasses"
+                                            min="@DateTime.Now.AddYears(-100).ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
                                     <span asp-validation-for="Friend.Birthday" class="invalid-feedback text-outline-black"></span>
                                 }
                                 else
                                 {
-                                    <input type="text" name="Friend.Birthday" class="@(inputClasses)"
-                                           value='@(Model.Friend.Birthday.HasValue ? Model.Friend.Birthday.Value.ToString("yyyy-MM-dd") : null)' />
+                                    <input type="text" name="Friend.Birthday" class="@inputClasses"
+                                            value='@(Model.Friend.Birthday.HasValue ? Model.Friend.Birthday.Value.ToString("yyyy-MM-dd") : null)' />
                                 }
                             </label>
                         }
                     </div>
                 </fieldset>
-            </div>
-            <div class="col-1 d-flex flex-column align-items-end">
-                @if (Model.Mode is FormMode.Edit)
+                
+                @if (Model.Mode is not FormMode.view)
                 {
-                    <button data-btn-edit type="button" class="btn-svg" data-tooltip="Edit">
-                        <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
-                    </button>
-                    <button data-btn-cancel type="reset" class="d-none btn-svg svg-delete" data-tooltip="Cancel">
-                        <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
-                    </button>
+                    <div>
+                        @if (Model.Mode is FormMode.add)
+                        {
+                            <button type="submit" asp-page-handler="AddFriend" class="w-100 mt-2 btn btn-primary">
+                                Save
+                            </button>
+                            <button type="reset" class="w-100 mt-2 btn btn-secondary">
+                                Clear
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" asp-page-handler="UpdateFriend" class="d-none w-100 mt-2 btn btn-primary">
+                                Update
+                            </button>
+                        }
+                    </div>
                 }
             </div>
-        </div>
-        @if (Model.Mode is not FormMode.View)
-        {
-            <div class="px-3 pb-3">
-                @if (Model.Mode is FormMode.Add)
-                {
-                    <button type="submit" asp-page-handler="AddFriend" class="w-100 btn btn-primary">
-                        Save
-                    </button>
-                    <button type="reset" class="w-100 mt-2 btn btn-secondary">
-                        Clear
-                    </button>
-                }
-                else
-                {
-                    <button type="submit" asp-page-handler="UpdateFriend" class="d-none w-100 btn btn-primary">
-                        Update
-                    </button>
-                }
-            </div>
-        }
-    </form>
+        </form>
+    </section>
 
-    @if (Model.Mode is FormMode.Edit)
+    @if (Model.Mode is not FormMode.add)
     {
-        <a data-btn-assign class="w-100 btn btn-primary" asp-area=""
-            asp-page="/Friends/Friend/Address" asp-route-friendId="@Model.Friend.FriendId">
-            Assign address
-        </a>
+        @if (Model.IsEmptyView(Model.Address) is false)
+        {
+            <section class="bg-dark text-white rounded-3 mb-3">
+                <form id="address-form" method="post" data-friend-form>
+                    <div class="p-3 d-flex flex-row justify-content-between align-items-center">
+                        <h2 class="fs-3 m-0">Address</h2>
+                        @if (Model.Mode is FormMode.edit)
+                        {
+                            <div class="d-flex flex-row gap-2">
+                                <a data-btn-assign data-tooltip="Assign address" class="btn btn-svg" asp-area=""
+                                   asp-page="/Friends/Friend/Address" asp-route-friendId="@Model.Friend.FriendId">
+                                    <svg width="24" height="24"><use xlink:href="#svg-add" href="#svg-add"></use></svg>
+                                </a>
+                                @if (Model.Address is not null)
+                                {
+                                    <button type="submit" data-btn-assign asp-page-handler="RemoveAddress" class="btn btn-svg" data-tooltip="Remove address">
+                                        <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
+                                    </button>
+                                }
+                                <button data-btn-edit type="button" class="btn btn-svg" data-tooltip="Edit address">
+                                    <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                                </button>
+                                <button data-btn-cancel type="reset" class="d-none btn btn-svg" data-tooltip="Cancel">
+                                    <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                    <div class="container bg-white text-black rounded-bottom pt-4 pb-3 px-3">
+                        <input type="hidden" asp-for="Mode" />
+                        <input type="hidden" asp-for="Friend.FriendId" />
+                        <input type="hidden" asp-for="Address.AddressId" />
+
+                        @if (Model.FriendsAtAddress is not null)
+                        {
+                            <div data-form-hidden class="d-none mx-3 d-flex flex-row justify-content-between alert alert-danger" role="alert">
+                                <div class="d-flex flex-row justify-content-start gap-2">
+                                    <svg width="24" height="24"><use xlink:href="#svg-info" href="#svg-info"></use></svg>
+                                    <div>
+                                        <strong>The following friends live at this address:</strong>
+                                        <ul>
+                                            @foreach (var friend in Model.FriendsAtAddress)
+                                            {
+                                                <li>@friend.FirstName @friend.LastName (@friend.Email)</li>
+                                            }
+                                        </ul>
+                                        <strong>Be aware that any changes will affect all of them.</strong>
+                                    </div>
+                                </div>
+                                <button type="button" class="d-none btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
+
+                        <fieldset id="address-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
+                            <div>
+                                @if (showEmptyFields || string.IsNullOrEmpty(Model.Address?.StreetAddress) is false)
+                                {
+                                    <label class="form-label">
+                                        <div>Street address:</div>
+                                        <input required type="text" placeholder="Street address" class="@inputClasses"
+                                        asp-for="Address.StreetAddress" />
+                                        <span asp-validation-for="Address.StreetAddress" class="invalid-feedback text-outline-black"></span>
+                                    </label>
+                                }
+                            </div>
+                            <div>
+                                @if (showEmptyFields || Model.Address?.ZipCode is not null)
+                                {
+                                    <label class="form-label">
+                                        <div>Zip code:</div>
+                                        <input required type="text" placeholder="Zip code" class="@inputClasses"
+                                        asp-for="Address.ZipCode" />
+                                        <span asp-validation-for="Address.ZipCode" class="invalid-feedback text-outline-black"></span>
+                                    </label>
+                                }
+                                @if (showEmptyFields || string.IsNullOrEmpty(Model.Address?.City) is false)
+                                {
+                                    <label class="form-label">
+                                        <div>City:</div>
+                                        <input required type="text" placeholder="City" class="@inputClasses"
+                                        asp-for="Address.City" />
+                                        <span asp-validation-for="Address.City" class="invalid-feedback text-outline-black"></span>
+                                    </label>
+                                }
+                            </div>
+                            <div>
+                                @if (showEmptyFields || string.IsNullOrEmpty(Model.Address?.Country) is false)
+                                {
+                                    <label class="form-label">
+                                        <div>Country:</div>
+                                        <input required type="text" placeholder="Country" class="@inputClasses"
+                                        asp-for="Address.Country" />
+                                        <span asp-validation-for="Address.Country" class="invalid-feedback text-outline-black"></span>
+                                    </label>
+                                }
+                            </div>
+                        </fieldset>
+
+                        @if (Model.Mode is FormMode.edit)
+                        {
+                            <div>
+                                @if (Model.Address is null)
+                                {
+                                    <button type="submit" asp-page-handler="AddAddress" class="d-none w-100 mt-2 btn btn-primary">
+                                        Add
+                                    </button>
+                                    <button type="reset" class="d-none w-100 mt-2 btn btn-secondary">
+                                        Clear
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="submit" asp-page-handler="UpdateAddress" class="d-none w-100 mt-2 btn btn-primary">
+                                        Update
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </form>
+            </section>
+        }
+
+        <div class="d-flex flex-row gap-3">
+            @if (Model.IsEmptyView(Model.Quotes) is false)
+            {
+                <section class="w-100 h-100 bg-dark text-white rounded-3 mb-3">
+                    <form id="quotes-form" method="post" data-friend-form>
+                        <div class="p-3 d-flex flex-row justify-content-between align-items-center">
+                            <h2 class="ms-3 fs-3">Quotes</h2>
+                            @if (Model.Mode is FormMode.edit)
+                            {
+                                <div class="d-flex flex-row gap-2">
+                                    <button data-btn-add type="button" class="d-none btn btn-svg" data-tooltip="Add new quote">
+                                        <svg width="24" height="24"><use xlink:href="#svg-add" href="#svg-add"></use></svg>
+                                    </button>
+                                    <button data-btn-edit type="button" class="btn btn-svg" data-tooltip="Edit quotes">
+                                        <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                                    </button>
+                                    <button data-btn-cancel type="reset" class="d-none btn btn-svg" data-tooltip="Cancel">
+                                        <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                        <div class="bg-white">
+                            <div data-subform-add class="d-flex flex-column gap-2 container bg-primary text-black border-bottom rounded-bottom closed">
+                                <div>
+                                    <label class="form-label">
+                                        <div>New quote:</div>
+                                        <textarea placeholder="New quote" class="@inputClasses"></textarea>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="form-label">
+                                        <div>New quote's author:</div>
+                                        <input type="text" placeholder="New quote's author" class="@inputClasses" />
+                                    </label>
+                                </div>
+                                <button data-add-confirm type="button" class="d-none btn btn-outline-light">Add new quote</button>
+                                <button data-add-cancel type="button" class="d-none btn btn-primary">Cancel</button>
+                            </div>
+                        </div>
+                        <div class="container bg-white text-black rounded-bottom pt-4 pb-3 px-3">
+                            <fieldset id="quote-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
+                                @if (Model.Quotes is not null)
+                                {
+                                    @for (int i = 0; i < Model.Quotes.Count; i++)
+                                    {
+                                        <div data-subform class="d-flex flex-column">
+                                            <div class="d-flex flex-row">
+                                                <div class="w-100">
+                                                    <input data-subform-status type="hidden" asp-for="Quotes[i].Status" />
+                                                    <input type="hidden" asp-for="Quotes[i].QuoteId" />
+
+                                                    <div>
+                                                        <label class="form-label">
+                                                            <div>Quote:</div>
+                                                            <textarea required data-subform-input placeholder="Quote" class="@inputClasses"
+                                                                      asp-for="Quotes[i].Quote" data-saved-value="@Model.Quotes[i].Quote" data-original-value="@Model.Quotes[i].Quote"
+                                                                      readonly></textarea>
+                                                            <span asp-validation-for="Quotes[i].Quote" class="invalid-feedback text-outline-black"></span>
+                                                        </label>
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label">
+                                                            <div>Author:</div>
+                                                            <input required type="text" data-subform-input placeholder="Author" class="@inputClasses"
+                                                                   asp-for="Quotes[i].Author" data-saved-value="@Model.Quotes[i].Author" data-original-value="@Model.Quotes[i].Author"
+                                                                   readonly />
+                                                            <span asp-validation-for="Quotes[i].Author" class="invalid-feedback text-outline-black"></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                @if (Model.Mode is FormMode.edit)
+                                                {
+                                                    <div data-form-hidden class="w-auto d-flex flex-column justify-content-between align-items-center gap-2 d-none">
+                                                        <div class="d-flex flex-column gap-2">
+                                                            <button data-subform-edit type="button" class="d-none btn btn-svg" data-tooltip="Edit quote">
+                                                                <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                                                            </button>
+                                                            <button data-subform-cancel type="button" class="btn btn-svg" data-tooltip="Cancel editing">
+                                                                <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                                                            </button>
+                                                            <button data-subform-reset type="button" class="d-none btn btn-svg" data-tooltip="Reset quote">
+                                                                <svg width="24" height="24"><use xlink:href="#svg-reset" href="#svg-reset"></use></svg>
+                                                            </button>
+                                                            <button data-subform-remove type="button" class="d-none btn btn-svg" data-tooltip="Remove quote">
+                                                                <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
+                                                            </button>
+                                                        </div>
+                                                        <div>
+                                                            <button data-subform-confirm type="button" class="btn btn-success text-white p-0" data-tooltip="Confirm">
+                                                                <svg width="24" height="24"><use xlink:href="#svg-confirm" href="#svg-confirm"></use></svg>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                            @if (i < Model.Quotes.Count - 1)
+                                            {
+                                                <hr class="mx-3 mt-0" />
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </fieldset>
+
+                            @if (Model.Mode is not FormMode.view)
+                            {
+                                <div>
+                                    <button type="submit" asp-page-handler="SubmitQuotes" class="d-none w-100 mt-2 btn btn-primary">
+                                        Submit changes
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </form>
+                </section>
+            }
+            @if (true)
+            {
+                <section class="w-100 h-100 bg-black text-white rounded-3 pt-3 mb-3">
+                    <h2 class="ms-3 fs-3">Pets</h2>
+                    <form id="pets-form" method="post" data-friend-form>
+                        <fieldset id="pet-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
+                        
+                        
+                        </fieldset>
+                    </form>
+                </section>
+            }
+        </div>
     }
 
-    <form id="address-form" method="post" class="friend-form bg-white text-black rounded-3 px-1 pt-3 mt-3">
-        
-    </form>
 
-    @* <form asp-page-handler="save" id="friend-form" method="post">
-        <input type="hidden" asp-for="Mode" />
-
-        <fieldset id="friend-form__friend" disabled="@(Model.Mode is FormMode.View)">
-            <input type="hidden" asp-for="Friend.Status" />
-            <input type="hidden" asp-for="Friend.FriendId" />
-            <div>
-                <label class="form-label">
-                    <div>First name:</div>
-                    <input required type="text" placeholder="First name" asp-for="Friend.FirstName"
-                           class="form-control" />
-                    <span asp-validation-for="Friend.FirstName" class="invalid-feedback text-outline-black"></span>
-                </label>
-                <label class="form-label">
-                    <div>Last name:</div>
-                    <input required type="text" placeholder="Last name" asp-for="Friend.LastName"
-                           class="form-control" />
-                    <span asp-validation-for="Friend.LastName" class="invalid-feedback text-outline-black"></span>
-                </label>
-            </div>
-            <div>
-                <label class="form-label">
-                    <div>Email:</div>
-                    <input required type="email" placeholder="Email" asp-for="Friend.Email"
-                           class="form-control" />
-                    <span asp-validation-for="Friend.Email" class="invalid-feedback text-outline-black"></span>
-                </label>
-                <label class="form-label">
-                    <div>Birthday:</div>
-                    @if (Model.Mode is not FormMode.View) {
-                        <input type="date" asp-for="Friend.Birthday" class="form-control"
-                            min="@DateTime.Now.AddYears(-100).ToString("yyyy-MM-dd")" max="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                        <span asp-validation-for="Friend.Birthday" class="invalid-feedback text-outline-black"></span>
-                    }
-                    else {
-                        <input type="text" name="birthday"
-                            value='@(Model.Friend.Birthday.HasValue ? Model.Friend.Birthday.Value.ToString("yyyy-MM-dd") : null)' />
-                    }
-                </label>
-            </div>
-        </fieldset>
-
-        <input type="hidden" asp-for="ValidateAddress" />
-
-        @if (Model.Mode == FormMode.Edit && Model.HasNoAddress)
-        {
-            <div class="pb-2">
-                <button id="btnToggleAddress" type="button" class="w-100 btn btn-light btn-outline-primary"
-                    data-toggled-text="Undo address">Assign address</button>
-            </div>
-        }
-
-        <fieldset id="friend-form__address" disabled="@(Model.Mode is FormMode.View || Model.HasNoAddress)">
-            <input type="hidden" asp-for="Address.Status" value="@(Model.Address?.Status ?? IMStatus.Unknown)" />
-            <input type="hidden" asp-for="Address.AddressId" value="@(Model.Address?.AddressId ?? Guid.NewGuid())" />
-            <div>
-                <label class="form-label">
-                    <div>Street address:</div>
-                    <input required type="text" placeholder="Street address" class="form-control"
-                        asp-for="Address.StreetAddress" />
-                    <span asp-validation-for="Address.StreetAddress" class="invalid-feedback text-outline-black"></span>
-                </label>
-            </div>
-            <div>
-                <label class="form-label">
-                    <div>Zip code:</div>
-                    <input required type="text" placeholder="Zip code" class="form-control"
-                        asp-for="Address.ZipCode" />
-                    <span asp-validation-for="Address.ZipCode" class="invalid-feedback text-outline-black"></span>
-                </label>
-                <label class="form-label">
-                    <div>City:</div>
-                    <input required type="text" placeholder="City" class="form-control"
-                        asp-for="Address.City" />
-                    <span asp-validation-for="Address.City" class="invalid-feedback text-outline-black"></span>
-                </label>
-            </div>
-            <div>
-                <label class="form-label">
-                    <div>Country:</div>
-                    <input required type="text" placeholder="Country" class="form-control"
-                        asp-for="Address.Country" />
-                    <span asp-validation-for="Address.Country" class="invalid-feedback text-outline-black"></span>
-                </label>
-            </div>
-        </fieldset>
-
-        @if (Model.Mode is FormMode.Add || Model.Mode is FormMode.Edit)
-        {
-            <button type="submit" class="w-100 btn btn-primary">Save</button>
-        }
-    </form> *@
-
-@*     @if (Model.Mode is FormMode.Edit)
-    {
-        <form asp-page-handler="undo" method="post">
-            <input type="hidden" name="friendId" value="@Model.Friend.FriendId" />
-            <button type="submit" class="w-100 pt-2 btn btn-secondary">Cancel</button>
-        </form>
-
-        <button type="button" class="w-100 btn btn-danger"
-            onclick="document.getElementById('friend-form').submit();">Bypass frontend validation</button>
-    } *@
+@* <button type="button" class="w-100 btn btn-danger"
+        onclick="document.getElementById('friend-form').submit();">Bypass frontend validation</button>
+*@
 
     <!-- Quotes attached to the friend are presented as a list, with buttons to edit or remove them -->
     <!-- A multi-choice select field to add pre-existing quotes to the friend -->
@@ -298,24 +450,53 @@
 </section>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <!-- checkmark -->
     <symbol id="svg-check" fill="currentColor" viewBox="0 0 16 16">
         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
     </symbol>
+
+    <!-- info -->
     <symbol id="svg-info" fill="currentColor" viewBox="0 0 16 16">
         <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
     </symbol>
+
+    <!-- alert -->
     <symbol id="svg-alert" fill="currentColor" viewBox="0 0 16 16">
         <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
     </symbol>
-    <symbol id="svg-edit" viewBox="0 -960 960 960">
+
+    <!-- add -->
+    <symbol id="svg-add" fill="green" viewBox="0 -960 960 960">
+        <path d="M440-280h80v-160h160v-80H520v-160h-80v160H280v80h160v160Zm40 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+    </symbol>
+
+    <!-- remove -->
+    <symbol id="svg-remove" fill="red" viewBox="0 -960 960 960">
+        <path d="M280-440h400v-80H280v80ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+    </symbol>
+
+    <!-- edit -->
+    <symbol id="svg-edit" fill="royalblue" viewBox="0 -960 960 960">
         <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z" />
     </symbol>
-    <svg id="svg-cancel" viewBox="0 -960 960 960">
+
+    <!-- cancel -->
+    <symbol id="svg-cancel" fill="red" viewBox="0 -960 960 960">
         <path d="m336-280 144-144 144 144 56-56-144-144 144-144-56-56-144 144-144-144-56 56 144 144-144 144 56 56ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
-    </svg>
+    </symbol>
+
+    <!-- confirm -->
+    <symbol id="svg-confirm" fill="currentColor" viewBox="0 -960 960 960">
+        <path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+    </symbol>
+
+    <!-- reset -->
+    <symbol id="svg-reset" fill="darkgoldenrod" viewBox="0 -960 960 960">
+        <path d="m482-200 114-113-114-113-42 42 43 43q-28 1-54.5-9T381-381q-20-20-30.5-46T340-479q0-17 4.5-34t12.5-33l-44-44q-17 25-25 53t-8 57q0 38 15 75t44 66q29 29 65 43.5t74 15.5l-38 38 42 42Zm165-170q17-25 25-53t8-57q0-38-14.5-75.5T622-622q-29-29-65.5-43T482-679l38-39-42-42-114 113 114 113 42-42-44-44q27 0 55 10.5t48 30.5q20 20 30.5 46t10.5 52q0 17-4.5 34T603-414l44 44ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+    </symbol>
 </svg>
 
-@if (Model.Mode is FormMode.Edit)
+@if (Model.Mode is FormMode.edit)
 {
     <script>
         const editButtons = Array.from(document.querySelectorAll('[data-btn-edit]'));
@@ -327,6 +508,10 @@
 
                 const formButtons = Array.from(editBtn.form.getElementsByTagName('button'));
                 formButtons.forEach(formBtn => formBtn.classList.toggle('d-none'));
+
+                const hiddenFields = Array.from(editBtn.form.querySelectorAll('[data-form-hidden]'));
+                hiddenFields.forEach(field => field.classList.remove('d-none'));
+
                 editButtons.forEach(eBtn => { if (eBtn.form !== editBtn.form) eBtn.classList.add('d-none'); });
                 assignButtons.forEach(aBtn => aBtn.classList.add('d-none'));
             });
@@ -340,8 +525,129 @@
 
                 const formButtons = Array.from(cBtn.form.getElementsByTagName('button'));
                 formButtons.forEach(formBtn => formBtn.classList.toggle('d-none'));
+
+                const hiddenFields = Array.from(cBtn.form.querySelectorAll('[data-form-hidden]'));
+                hiddenFields.forEach(field => field.classList.add('d-none'));
+
                 editButtons.forEach(eBtn => { if (eBtn.form !== cBtn.form) eBtn.classList.remove('d-none'); });
                 assignButtons.forEach(aBtn => aBtn.classList.remove('d-none'));
+
+
+                const subForms = Array.from(cBtn.form.querySelectorAll('[data-subform]'));
+                subForms.forEach(subForm => {
+                    const status = subForm.querySelector('[data-subform-status]');
+
+                    switch(status.value)
+                    {
+                        case 'Inserted':
+                            subForm.remove();
+                            break;
+                        case 'Deleted':
+                            subForm.classList.remove('d-none');
+                        default:
+                            status.value = 'Unchanged';
+                            break;
+                    }
+                });
+            });
+        });
+
+        const addButtons = Array.from(document.querySelectorAll('[data-btn-add]'));
+
+        addButtons.forEach(addBtn => { 
+            addBtn.addEventListener('click', function (event) {
+                addBtn.form.querySelector('[data-subform-add]').classList.remove('closed');
+            });
+        });
+
+        const cancelAddButtons = Array.from(document.querySelectorAll('[data-add-cancel]'));
+
+        cancelAddButtons.forEach(cancelButton => {
+            cancelButton.addEventListener('click', function (event) {
+                const subFrom = cancelButton.closest('[data-subform-add]');
+                
+                subForm.classList.add('closed');
+            });
+        });
+
+        const subForms = Array.from(document.querySelectorAll('[data-subform]'));
+        const subEditButtons = Array.from(document.querySelectorAll('[data-subform-edit]'));
+
+        subForms.forEach(subForm => {
+            const statusField = subForm.querySelector('[data-subform-status]');
+            const editBtn = subForm.querySelector('[data-subform-edit]');
+            const cancelBtn = subForm.querySelector('[data-subform-cancel]');
+            const resetBtn = subForm.querySelector('[data-subform-reset]');
+            const removeBtn = subForm.querySelector('[data-subform-remove]');
+            const confirmBtn = subForm.querySelector('[data-subform-confirm]');
+            const subInputs = Array.from(subForm.querySelectorAll('[data-subform-input]'));
+
+            editBtn.addEventListener('click', function (event) {
+                editBtn.form.querySelector('[data-btn-cancel]').classList.add('d-none');
+                editBtn.form.querySelector('button[type=submit]').classList.add('d-none');
+
+                subInputs.forEach(subInput => {
+                    subInput.readOnly = false;
+                });
+
+                subEditButtons.forEach(subEdit => {
+                    subEdit.classList.add('d-none');
+                });
+
+                cancelBtn.classList.remove('d-none');
+                removeBtn.classList.add('d-none');
+                confirmBtn.classList.remove('d-none');
+            });
+
+            cancelBtn.addEventListener('click', function (event) {
+                subInputs.forEach(subInput => {
+                    subInput.readOnly = true;
+                    subInput.value = subInput.dataset.savedValue;
+                });
+
+                cancelBtn.form.querySelector('[data-btn-cancel]').classList.remove('d-none');
+                cancelBtn.form.querySelector('button[type=submit]').classList.remove('d-none');
+
+                subEditButtons.forEach(subEdit => {
+                    subEdit.classList.remove('d-none');
+                });
+
+                cancelBtn.classList.add('d-none');
+                removeBtn.classList.remove('d-none');
+                confirmBtn.classList.add('d-none');
+            });
+
+            confirmBtn.addEventListener('click', function (event) {
+                statusField.value = 'Modified';
+                
+                subInputs.forEach(subInput => {
+                    subInput.readOnly = true;
+                    subInput.dataset.savedValue = subInput.value;
+                });
+
+                confirmBtn.form.querySelector('[data-btn-cancel]').classList.remove('d-none');
+                confirmBtn.form.querySelector('button[type=submit]').classList.remove('d-none');
+
+                subEditButtons.forEach(subEdit => {
+                    subEdit.classList.remove('d-none');
+                });
+
+                cancelBtn.classList.add('d-none');
+                removeBtn.classList.remove('d-none');
+                confirmBtn.classList.add('d-none');
+            });
+
+            resetBtn.addEventListener('click', function (event) {
+                statusField.value = 'Unchanged';
+
+                subInputs.forEach(subInput => {
+                    subInput.value = subInput.dataset.originalValue;
+                });
+            });
+
+            removeBtn.addEventListener('click', function (event) {
+                statusField.value = 'Deleted';
+                subForm.classList.add('d-none');
             });
         });
     </script>
