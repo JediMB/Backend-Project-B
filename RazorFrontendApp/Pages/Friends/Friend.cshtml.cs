@@ -151,7 +151,9 @@ namespace RazorFrontendApp.Pages.Friends
                     if (friend?.Address is not null)
                         Address = new(friend.Address);
 
-                    // Also update quotes and pets
+                    Quotes = friend.Quotes.Select(q => new QuoteIM(q)).ToList();
+
+                    // Also update pets
 
                     return Page();
                 }
@@ -219,7 +221,9 @@ namespace RazorFrontendApp.Pages.Friends
 
                     Friend = new(oldFriend);
 
-                    // Also update quotes and pets
+                    Quotes = oldFriend.Quotes.Select(q => new QuoteIM(q)).ToList();
+
+                    // Also update pets
 
                     return Page();
                 }
@@ -269,7 +273,9 @@ namespace RazorFrontendApp.Pages.Friends
 
                     Friend = new(friend);
 
-                    // Also update quotes and pets
+                    Quotes = friend.Quotes.Select(q => new QuoteIM(q)).ToList();
+
+                    // Also update pets
 
                     return Page();
                 }
@@ -291,12 +297,85 @@ namespace RazorFrontendApp.Pages.Friends
             }
         }
 
-        public async Task<IActionResult> OnPostSubmitQuotes()
+        public async Task<IActionResult> OnPostSubmitQuotes(Guid friendId, int quoteCount)
         {
-            if (Quotes is null)
-                return Page();
+            if (friendId == Guid.Empty)
+                return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = friendId, msg = "Empty friend id." });
 
-            return Page();
+            List<string> validationKeys = new();
+
+            int numberOfQuotes = int.Max(Quotes.Count, quoteCount);
+
+            try
+            {
+                if (numberOfQuotes > 50)
+                    throw new ArgumentException("Too many quotes submitted. (Max 50)");
+
+                for (int i = 0; i < numberOfQuotes; i++)
+                {
+                    validationKeys.Add($"Quotes[{i}].Status");
+                    validationKeys.Add($"Quotes[{i}].QuoteId");
+                    validationKeys.Add($"Quotes[{i}].Quote");
+                    validationKeys.Add($"Quotes[{i}].Author");
+                }
+
+                IFriend friend;
+
+                if (IsInvalid(validationKeys.ToArray()))
+                {
+                    friend = await _service.ReadFriendAsync(null, Friend.FriendId, false)
+                        ?? throw new Exception("Trying to update an address that does not exist.");
+
+                    Friend = new(friend);
+
+                    if (friend?.Address is not null)
+                        Address = new(friend.Address);
+
+                    // Also update pets
+
+                    return Page();
+                }
+
+                foreach(var quote in Quotes)
+                {
+                    switch (quote.Status)
+                    {
+                        case IMStatus.Inserted:
+                            IQuote newQuote = await _service.CreateQuoteAsync(null,
+                                new csQuoteCUdto(quote.UpdateModel(new csQuote())) { QuoteId = null }
+                            ) ?? throw new Exception("Failed to create new quote.");
+
+                            quote.QuoteId = newQuote.QuoteId;
+                            break;
+
+                        case IMStatus.Modified:
+                            IQuote updatedQuote = await _service.ReadQuoteAsync(null, quote.QuoteId, true)
+                                ?? throw new Exception("Trying to update a quote that does not exist.");
+
+                            updatedQuote = await _service.UpdateQuoteAsync(null,
+                                new csQuoteCUdto(quote.UpdateModel(updatedQuote))
+                            ) ?? throw new Exception("Failed to update quote");
+                            break;
+                    }
+                }
+
+                csFriendCUdto friendDTO = new(await _service.ReadFriendAsync(null, Friend.FriendId, false)
+                    ?? throw new Exception("Trying to update an address that does not exist."));
+
+                friendDTO.QuotesId = Quotes
+                    .Where(q => q.Status != IMStatus.Unknown && q.Status != IMStatus.Deleted)
+                    .Select(q => q.QuoteId)
+                    .ToList();
+
+                friend = await _service.UpdateFriendAsync(null, friendDTO)
+                    ?? throw new Exception("Failed to update friend.");
+
+                return RedirectToPage("Friend", "updated", new { action = FormMode.edit, id = friend.FriendId });
+            }
+            catch (Exception ex)
+            {
+                return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = friendId, msg = ex.Message });
+            }
         }
 
         public FriendModel(IFriendsService service, ILogger<FriendModel> logger)
@@ -491,7 +570,6 @@ namespace RazorFrontendApp.Pages.Friends
 
         public IQuote UpdateModel(IQuote model)
         {
-            model.QuoteId = QuoteId;
             model.Quote = Quote;
             model.Author = Author;
 

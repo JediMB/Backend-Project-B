@@ -335,7 +335,7 @@ img.city {
     width: 100%;
 }
 
-[data-friend-form] input {
+[data-friend-form] .form-control {
     border: 1px #999 solid;
     border-radius: 0.5em;
     padding: 0.25em;
@@ -370,7 +370,16 @@ img.city {
 }
 
 
-[data-subform-add] {
+
+[data-subform]:last-child hr {
+    display: none;
+}
+
+[data-subform-display] {
+    white-space: pre-line;
+}
+
+/*[data-subform-add] {
     opacity: 1;
     max-height: 1000px;
     padding-top: 1.5rem;
@@ -389,7 +398,7 @@ img.city {
 
 [data-subform-add].closed * {
     display: none;
-}
+}*/
 
 /* Address */
 

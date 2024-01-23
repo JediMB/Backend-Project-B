@@ -87,7 +87,7 @@
                         @if (showEmptyFields || string.IsNullOrEmpty(Model.Friend.FirstName) is false)
                         {
                             <label class="form-label">
-                                <div>First name:</div>
+                                <span>First name:</span>
                                 <input required type="text" placeholder="First name" asp-for="Friend.FirstName"
                                         class="@inputClasses" />
                                 <span asp-validation-for="Friend.FirstName" class="invalid-feedback text-outline-black"></span>
@@ -96,7 +96,7 @@
                         @if (showEmptyFields || string.IsNullOrEmpty(Model.Friend.LastName) is false)
                         {
                             <label class="form-label">
-                                <div>Last name:</div>
+                                <span>Last name:</span>
                                 <input required type="text" placeholder="Last name" asp-for="Friend.LastName"
                                         class="@inputClasses" />
                                 <span asp-validation-for="Friend.LastName" class="invalid-feedback text-outline-black"></span>
@@ -107,7 +107,7 @@
                         @if (showEmptyFields || string.IsNullOrEmpty(Model.Friend.Email) is false)
                         {
                             <label class="form-label">
-                                <div>Email:</div>
+                                <span>Email:</span>
                                 <input required type="email" placeholder="Email" asp-for="Friend.Email"
                                         class="@inputClasses" />
                                 <span asp-validation-for="Friend.Email" class="invalid-feedback text-outline-black"></span>
@@ -116,7 +116,7 @@
                         @if (showEmptyFields || Model.Friend.Birthday.HasValue)
                         {
                             <label class="form-label">
-                                <div>Birthday:</div>
+                                <span>Birthday:</span>
                                 @if (Model.Mode is not FormMode.view)
                                 {
                                     <input type="date" asp-for="Friend.Birthday" class="@inputClasses"
@@ -217,7 +217,7 @@
                                 @if (showEmptyFields || string.IsNullOrEmpty(Model.Address?.StreetAddress) is false)
                                 {
                                     <label class="form-label">
-                                        <div>Street address:</div>
+                                        <span>Street address:</span>
                                         <input required type="text" placeholder="Street address" class="@inputClasses"
                                         asp-for="Address.StreetAddress" />
                                         <span asp-validation-for="Address.StreetAddress" class="invalid-feedback text-outline-black"></span>
@@ -228,7 +228,7 @@
                                 @if (showEmptyFields || Model.Address?.ZipCode is not null)
                                 {
                                     <label class="form-label">
-                                        <div>Zip code:</div>
+                                        <span>Zip code:</span>
                                         <input required type="text" placeholder="Zip code" class="@inputClasses"
                                         asp-for="Address.ZipCode" />
                                         <span asp-validation-for="Address.ZipCode" class="invalid-feedback text-outline-black"></span>
@@ -237,7 +237,7 @@
                                 @if (showEmptyFields || string.IsNullOrEmpty(Model.Address?.City) is false)
                                 {
                                     <label class="form-label">
-                                        <div>City:</div>
+                                        <span>City:</span>
                                         <input required type="text" placeholder="City" class="@inputClasses"
                                         asp-for="Address.City" />
                                         <span asp-validation-for="Address.City" class="invalid-feedback text-outline-black"></span>
@@ -248,7 +248,7 @@
                                 @if (showEmptyFields || string.IsNullOrEmpty(Model.Address?.Country) is false)
                                 {
                                     <label class="form-label">
-                                        <div>Country:</div>
+                                        <span>Country:</span>
                                         <input required type="text" placeholder="Country" class="@inputClasses"
                                         asp-for="Address.Country" />
                                         <span asp-validation-for="Address.Country" class="invalid-feedback text-outline-black"></span>
@@ -292,7 +292,8 @@
                             @if (Model.Mode is FormMode.edit)
                             {
                                 <div class="d-flex flex-row gap-2">
-                                    <button data-btn-add type="button" class="d-none btn btn-svg" data-tooltip="Add new quote">
+                                    <button type="button" class="d-none btn btn-svg" data-tooltip="Add new quote"
+                                            data-bs-toggle="modal" data-bs-target="#quoteModal">
                                         <svg width="24" height="24"><use xlink:href="#svg-add" href="#svg-add"></use></svg>
                                     </button>
                                     <button data-btn-edit type="button" class="btn btn-svg" data-tooltip="Edit quotes">
@@ -304,97 +305,80 @@
                                 </div>
                             }
                         </div>
-                        <div class="bg-white">
-                            <div data-subform-add class="d-flex flex-column gap-2 container bg-primary text-black border-bottom rounded-bottom closed">
-                                <div>
-                                    <label class="form-label">
-                                        <div>New quote:</div>
-                                        <textarea placeholder="New quote" class="@inputClasses"></textarea>
-                                    </label>
-                                </div>
-                                <div>
-                                    <label class="form-label">
-                                        <div>New quote's author:</div>
-                                        <input type="text" placeholder="New quote's author" class="@inputClasses" />
-                                    </label>
-                                </div>
-                                <button data-add-confirm type="button" class="d-none btn btn-outline-light">Add new quote</button>
-                                <button data-add-cancel type="button" class="d-none btn btn-primary">Cancel</button>
-                            </div>
-                        </div>
-                        <div class="container bg-white text-black rounded-bottom pt-4 pb-3 px-3">
-                            <fieldset id="quote-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
-                                @if (Model.Quotes is not null)
-                                {
-                                    @for (int i = 0; i < Model.Quotes.Count; i++)
-                                    {
-                                        <div data-subform class="d-flex flex-column">
-                                            <div class="d-flex flex-row">
-                                                <div class="w-100">
-                                                    <input data-subform-status type="hidden" asp-for="Quotes[i].Status" />
-                                                    <input type="hidden" asp-for="Quotes[i].QuoteId" />
+                        <div class="container p-0 m-0 bg-white text-black rounded-bottom">
+                            <div class="pt-4 pb-3 px-3 scrollbox-500">
+                                <fieldset id="quote-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
+                                    <input type="hidden" id="quote-friendId" name="friendId" value="@Model.Friend.FriendId" />
+                                    <input type="hidden" id="quote-count" name="quoteCount" value="@(Model.Quotes?.Count ?? 0)" data-counter-value="@(Model.Quotes?.Count ?? 0)" />
 
-                                                    <div>
-                                                        <label class="form-label">
-                                                            <div>Quote:</div>
-                                                            <textarea required data-subform-input placeholder="Quote" class="@inputClasses"
-                                                                      asp-for="Quotes[i].Quote" data-saved-value="@Model.Quotes[i].Quote" data-original-value="@Model.Quotes[i].Quote"
-                                                                      readonly></textarea>
-                                                            <span asp-validation-for="Quotes[i].Quote" class="invalid-feedback text-outline-black"></span>
-                                                        </label>
-                                                    </div>
-                                                    <div>
-                                                        <label class="form-label">
-                                                            <div>Author:</div>
-                                                            <input required type="text" data-subform-input placeholder="Author" class="@inputClasses"
-                                                                   asp-for="Quotes[i].Author" data-saved-value="@Model.Quotes[i].Author" data-original-value="@Model.Quotes[i].Author"
-                                                                   readonly />
-                                                            <span asp-validation-for="Quotes[i].Author" class="invalid-feedback text-outline-black"></span>
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                @if (Model.Mode is FormMode.edit)
-                                                {
-                                                    <div data-form-hidden class="w-auto d-flex flex-column justify-content-between align-items-center gap-2 d-none">
-                                                        <div class="d-flex flex-column gap-2">
-                                                            <button data-subform-edit type="button" class="d-none btn btn-svg" data-tooltip="Edit quote">
-                                                                <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
-                                                            </button>
-                                                            <button data-subform-cancel type="button" class="btn btn-svg" data-tooltip="Cancel editing">
-                                                                <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
-                                                            </button>
-                                                            <button data-subform-reset type="button" class="d-none btn btn-svg" data-tooltip="Reset quote">
-                                                                <svg width="24" height="24"><use xlink:href="#svg-reset" href="#svg-reset"></use></svg>
-                                                            </button>
-                                                            <button data-subform-remove type="button" class="d-none btn btn-svg" data-tooltip="Remove quote">
-                                                                <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
-                                                            </button>
+                                    @if (Model.Quotes is not null)
+                                    {
+                                        @for (int i = 0; i < Model.Quotes.Count; i++)
+                                        {
+                                            <div data-subform class="d-flex flex-column">
+                                                <input data-subform-status type="hidden" asp-for="Quotes[i].Status" />
+                                                <input type="hidden" asp-for="Quotes[i].QuoteId" />
+                                                <div class="d-flex flex-row gap-2">
+                                                    <div class="w-100">
+                                                        <div>
+                                                            <label class="form-label">
+                                                                <span>Quote:</span>
+                                                                <span data-subform-display class="form-control border-0">@Model.Quotes[i].Quote</span>
+                                                                <textarea required data-subform-input placeholder="Quote" class="@inputClasses d-none"
+                                                                          asp-for="Quotes[i].Quote" data-saved-value="@Model.Quotes[i].Quote" data-original-value="@Model.Quotes[i].Quote"
+                                                                          readonly></textarea>
+                                                                <span asp-validation-for="Quotes[i].Quote" class="invalid-feedback text-outline-black"></span>
+                                                            </label>
                                                         </div>
                                                         <div>
-                                                            <button data-subform-confirm type="button" class="btn btn-success text-white p-0" data-tooltip="Confirm">
-                                                                <svg width="24" height="24"><use xlink:href="#svg-confirm" href="#svg-confirm"></use></svg>
-                                                            </button>
+                                                            <label class="form-label">
+                                                                <span>Author:</span>
+                                                                <input required type="text" data-subform-input placeholder="Author" class="@inputClasses"
+                                                                       asp-for="Quotes[i].Author" data-saved-value="@Model.Quotes[i].Author" data-original-value="@Model.Quotes[i].Author"
+                                                                       readonly />
+                                                                <span asp-validation-for="Quotes[i].Author" class="invalid-feedback text-outline-black"></span>
+                                                            </label>
                                                         </div>
                                                     </div>
-                                                }
-                                            </div>
-                                            @if (i < Model.Quotes.Count - 1)
-                                            {
+                                                    @if (Model.Mode is FormMode.edit)
+                                                    {
+                                                        <div data-form-hidden class="w-auto d-flex flex-column justify-content-between align-items-center gap-2 d-none">
+                                                            <div class="d-flex flex-column gap-2">
+                                                                <button data-subform-edit type="button" class="d-none btn btn-svg" data-tooltip="Edit quote">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                                                                </button>
+                                                                <button data-subform-cancel type="button" class="btn btn-svg" data-tooltip="Cancel editing">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                                                                </button>
+                                                                <button data-subform-reset type="button" class="d-none btn btn-svg" data-tooltip="Reset quote">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-reset" href="#svg-reset"></use></svg>
+                                                                </button>
+                                                                <button data-subform-remove type="button" class="d-none btn btn-svg" data-tooltip="Remove quote">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
+                                                                </button>
+                                                            </div>
+                                                            <div>
+                                                                <button data-subform-confirm type="button" class="btn btn-success text-white p-0" data-tooltip="Confirm">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-confirm" href="#svg-confirm"></use></svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
                                                 <hr class="mx-3 mt-0" />
-                                            }
-                                        </div>
+                                            </div>
+                                        }
                                     }
+                                </fieldset>
+                            </div>
+                            <div class="px-3 pb-3">
+                                @if (Model.Mode is not FormMode.view)
+                                {
+                                        <button type="submit" asp-page-handler="SubmitQuotes" class="d-none w-100 mt-2 btn btn-primary">
+                                            Submit changes
+                                        </button>
                                 }
-                            </fieldset>
-
-                            @if (Model.Mode is not FormMode.view)
-                            {
-                                <div>
-                                    <button type="submit" asp-page-handler="SubmitQuotes" class="d-none w-100 mt-2 btn btn-primary">
-                                        Submit changes
-                                    </button>
-                                </div>
-                            }
+                            </div>
                         </div>
                     </form>
                 </section>
@@ -415,24 +399,6 @@
     }
 
 
-@* <button type="button" class="w-100 btn btn-danger"
-        onclick="document.getElementById('friend-form').submit();">Bypass frontend validation</button>
-*@
-
-    <!-- Quotes attached to the friend are presented as a list, with buttons to edit or remove them -->
-    <!-- A multi-choice select field to add pre-existing quotes to the friend -->
-    @* @if (Model.Friend?.Quotes is not null)
-    {
-        <p><strong>Quotes:</strong> @foreach (var quote in Model.Friend?.Quotes)
-            {
-                <div data-tooltip="@quote.QuoteId">
-                    @quote.Quote
-                    -- @quote.Author
-                </div>
-            }
-        </p>
-    } *@
-
     <!-- Pets attached to the friend are presented in a list, with buttons to edit or delete them -->
     <!-- A button-link to a page that lets you add a new pet to the friend -->
    @*  @if (Model.Friend?.Pets is not null)
@@ -448,6 +414,86 @@
         </p>
     } *@
 </section>
+
+<!-- Add Quote Modal -->
+<div class="modal fade text-black" id="quoteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="quoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="quoteModalLabel">Add quote</h5>
+            </div>
+            <form method="post">
+                <div class="modal-body">
+                    <div>
+                        <label class="w-100 form-label">
+                            <span>New quote:</span>
+                            <textarea id="new-quote-text" placeholder="New quote" class="@inputClasses"></textarea>
+                        </label>
+                    </div>
+                    <div>
+                        <label class="w-100 form-label">
+                            <span>New quote's author:</span>
+                            <input id="new-quote-author" type="text" placeholder="New quote's author" class="@inputClasses" />
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary"
+                            data-bs-dismiss="modal" data-btn-add-quote data-add-target="#quote-fields">Add</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quote Template -->
+<div id="template-quote" data-subform class="d-none d-flex flex-column">
+    <input data-subform-status type="hidden" id="template-quote-status" />
+    <input type="hidden" id="template-quote-id" />
+    <div class="d-flex flex-row gap-2">
+        <div class="w-100">
+            <div>
+                <label class="form-label">
+                    <span>Quote:</span>
+                    <textarea required data-subform-input placeholder="Quote" class="@inputClasses"
+                              id="template-quote-text" data-saved-value="" data-original-value=""
+                              readonly></textarea>
+                </label>
+            </div>
+            <div>
+                <label class="form-label">
+                    <span>Author:</span>
+                    <input required type="text" data-subform-input placeholder="Author" class="@inputClasses"
+                           id="template-quote-author" data-saved-value="" data-original-value=""
+                           readonly />
+                </label>
+            </div>
+        </div>
+        <div data-form-hidden class="w-auto d-flex flex-column justify-content-between align-items-center gap-2">
+            <div class="d-flex flex-column gap-2">
+                <button data-subform-edit type="button" class="btn btn-svg" data-tooltip="Edit quote">
+                    <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                </button>
+                <button data-subform-cancel type="button" class="d-none btn btn-svg" data-tooltip="Cancel editing">
+                    <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                </button>
+                <button data-subform-reset type="button" class="btn btn-svg" data-tooltip="Reset quote">
+                    <svg width="24" height="24"><use xlink:href="#svg-reset" href="#svg-reset"></use></svg>
+                </button>
+                <button data-subform-remove type="button" class="btn btn-svg" data-tooltip="Remove quote">
+                    <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
+                </button>
+            </div>
+            <div>
+                <button data-subform-confirm type="button" class="d-none btn btn-success text-white p-0" data-tooltip="Confirm">
+                    <svg width="24" height="24"><use xlink:href="#svg-confirm" href="#svg-confirm"></use></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    <hr class="mx-3 mt-0" />
+</div>
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <!-- checkmark -->
@@ -496,161 +542,11 @@
     </symbol>
 </svg>
 
+<!-- TODO: Make preexisting quotes selectable from dropdown (in the modal?) -->
+
 @if (Model.Mode is FormMode.edit)
 {
-    <script>
-        const editButtons = Array.from(document.querySelectorAll('[data-btn-edit]'));
-        const assignButtons = Array.from(document.querySelectorAll('[data-btn-assign]'));
-
-        editButtons.forEach(editBtn => {
-            editBtn.addEventListener('click', function (event) {
-                editBtn.form.getElementsByTagName('fieldset')[0].disabled = null;
-
-                const formButtons = Array.from(editBtn.form.getElementsByTagName('button'));
-                formButtons.forEach(formBtn => formBtn.classList.toggle('d-none'));
-
-                const hiddenFields = Array.from(editBtn.form.querySelectorAll('[data-form-hidden]'));
-                hiddenFields.forEach(field => field.classList.remove('d-none'));
-
-                editButtons.forEach(eBtn => { if (eBtn.form !== editBtn.form) eBtn.classList.add('d-none'); });
-                assignButtons.forEach(aBtn => aBtn.classList.add('d-none'));
-            });
-        });
-
-        const cancelButtons = Array.from(document.querySelectorAll('[data-btn-cancel]'));
-
-        cancelButtons.forEach(cBtn => {
-            cBtn.addEventListener('click', function (event) {
-                cBtn.form.getElementsByTagName('fieldset')[0].disabled = 'disabled';
-
-                const formButtons = Array.from(cBtn.form.getElementsByTagName('button'));
-                formButtons.forEach(formBtn => formBtn.classList.toggle('d-none'));
-
-                const hiddenFields = Array.from(cBtn.form.querySelectorAll('[data-form-hidden]'));
-                hiddenFields.forEach(field => field.classList.add('d-none'));
-
-                editButtons.forEach(eBtn => { if (eBtn.form !== cBtn.form) eBtn.classList.remove('d-none'); });
-                assignButtons.forEach(aBtn => aBtn.classList.remove('d-none'));
-
-
-                const subForms = Array.from(cBtn.form.querySelectorAll('[data-subform]'));
-                subForms.forEach(subForm => {
-                    const status = subForm.querySelector('[data-subform-status]');
-
-                    switch(status.value)
-                    {
-                        case 'Inserted':
-                            subForm.remove();
-                            break;
-                        case 'Deleted':
-                            subForm.classList.remove('d-none');
-                        default:
-                            status.value = 'Unchanged';
-                            break;
-                    }
-                });
-            });
-        });
-
-        const addButtons = Array.from(document.querySelectorAll('[data-btn-add]'));
-
-        addButtons.forEach(addBtn => { 
-            addBtn.addEventListener('click', function (event) {
-                addBtn.form.querySelector('[data-subform-add]').classList.remove('closed');
-            });
-        });
-
-        const cancelAddButtons = Array.from(document.querySelectorAll('[data-add-cancel]'));
-
-        cancelAddButtons.forEach(cancelButton => {
-            cancelButton.addEventListener('click', function (event) {
-                const subFrom = cancelButton.closest('[data-subform-add]');
-                
-                subForm.classList.add('closed');
-            });
-        });
-
-        const subForms = Array.from(document.querySelectorAll('[data-subform]'));
-        const subEditButtons = Array.from(document.querySelectorAll('[data-subform-edit]'));
-
-        subForms.forEach(subForm => {
-            const statusField = subForm.querySelector('[data-subform-status]');
-            const editBtn = subForm.querySelector('[data-subform-edit]');
-            const cancelBtn = subForm.querySelector('[data-subform-cancel]');
-            const resetBtn = subForm.querySelector('[data-subform-reset]');
-            const removeBtn = subForm.querySelector('[data-subform-remove]');
-            const confirmBtn = subForm.querySelector('[data-subform-confirm]');
-            const subInputs = Array.from(subForm.querySelectorAll('[data-subform-input]'));
-
-            editBtn.addEventListener('click', function (event) {
-                editBtn.form.querySelector('[data-btn-cancel]').classList.add('d-none');
-                editBtn.form.querySelector('button[type=submit]').classList.add('d-none');
-
-                subInputs.forEach(subInput => {
-                    subInput.readOnly = false;
-                });
-
-                subEditButtons.forEach(subEdit => {
-                    subEdit.classList.add('d-none');
-                });
-
-                cancelBtn.classList.remove('d-none');
-                removeBtn.classList.add('d-none');
-                confirmBtn.classList.remove('d-none');
-            });
-
-            cancelBtn.addEventListener('click', function (event) {
-                subInputs.forEach(subInput => {
-                    subInput.readOnly = true;
-                    subInput.value = subInput.dataset.savedValue;
-                });
-
-                cancelBtn.form.querySelector('[data-btn-cancel]').classList.remove('d-none');
-                cancelBtn.form.querySelector('button[type=submit]').classList.remove('d-none');
-
-                subEditButtons.forEach(subEdit => {
-                    subEdit.classList.remove('d-none');
-                });
-
-                cancelBtn.classList.add('d-none');
-                removeBtn.classList.remove('d-none');
-                confirmBtn.classList.add('d-none');
-            });
-
-            confirmBtn.addEventListener('click', function (event) {
-                statusField.value = 'Modified';
-                
-                subInputs.forEach(subInput => {
-                    subInput.readOnly = true;
-                    subInput.dataset.savedValue = subInput.value;
-                });
-
-                confirmBtn.form.querySelector('[data-btn-cancel]').classList.remove('d-none');
-                confirmBtn.form.querySelector('button[type=submit]').classList.remove('d-none');
-
-                subEditButtons.forEach(subEdit => {
-                    subEdit.classList.remove('d-none');
-                });
-
-                cancelBtn.classList.add('d-none');
-                removeBtn.classList.remove('d-none');
-                confirmBtn.classList.add('d-none');
-            });
-
-            resetBtn.addEventListener('click', function (event) {
-                statusField.value = 'Unchanged';
-
-                subInputs.forEach(subInput => {
-                    subInput.value = subInput.dataset.originalValue;
-                });
-            });
-
-            removeBtn.addEventListener('click', function (event) {
-                statusField.value = 'Deleted';
-                subForm.classList.add('d-none');
-            });
-        });
-    </script>
+    <script src="~/lib/friend.js"></script>
 }
 
 @section scripts {
