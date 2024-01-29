@@ -38,6 +38,7 @@ namespace Services
         public Task<IAddress> UpdateAddressAsync(loginUserSessionDto usr, csAddressCUdto item);
         public Task<IAddress> CreateAddressAsync(loginUserSessionDto usr, csAddressCUdto item);
 
+        public Task<int> CountQuotesAsync(loginUserSessionDto usr, bool seeded, string filter, int pageNumber, int pageSize);
         public Task<List<IQuote>> ReadQuotesAsync(loginUserSessionDto usr, bool seeded, bool flat, string filter, int pageNumber, int pageSize);
         public Task<IQuote> ReadQuoteAsync(loginUserSessionDto usr, Guid id, bool flat);
         public Task<IQuote> DeleteQuoteAsync(loginUserSessionDto usr, Guid id);

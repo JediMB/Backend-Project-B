@@ -28,6 +28,37 @@ namespace AppWebApi.Controllers
         IFriendsService _service = null;
         ILogger<QuotesController> _logger = null;
 
+        //GET: api/quotes/count
+        [HttpGet()]
+        [ActionName("Count")]
+        [ProducesResponseType(200, Type = typeof(int))]
+        [ProducesResponseType(400, Type = typeof(string))]
+        public async Task<IActionResult> Read(string seeded = "true", string filter = null,
+            string pageNr = "0", string pageSize = "1000")
+        {
+            //Convert and check parameters
+            bool _seeded = true;
+            if (!bool.TryParse(seeded, out _seeded))
+            {
+                return BadRequest("seeded format error");
+            }
+
+            int _pageNr = 0;
+            if (!int.TryParse(pageNr, out _pageNr))
+            {
+                return BadRequest("pageNr format error");
+            }
+
+            int _pageSize = 0;
+            if (!int.TryParse(pageSize, out _pageSize))
+            {
+                return BadRequest("pageSize format error");
+            }
+
+            var items = await _service.CountQuotesAsync(_usr, _seeded, filter?.Trim()?.ToLower(), _pageNr, _pageSize);
+            return Ok(items);
+        }
+
         //GET: api/quotes/read
         [HttpGet()]
         [ActionName("Read")]

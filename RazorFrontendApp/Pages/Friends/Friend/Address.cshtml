@@ -53,7 +53,7 @@
 
     <div class="d-flex flex-column align-items-end mt-3">
         @{
-            FriendCounter();
+            AddressCounter();
         }
     </div>
 
@@ -66,11 +66,11 @@
 
                 <input type="hidden" name="@part.Key" value="@part.Value" />
             }
-            <div class="list-bar" data-tooltip="Filter the results by first or last name. Press enter to submit.">
+            <div class="list-bar" data-tooltip="Filter the results by address information. Press enter to submit.">
                 <input type="text" placeholder="Name filter" name="filter" value="@Model.Filter" />
             </div>
 
-            <div class="list-bar flex-grow-0" data-tooltip="The number of friends per page.">
+            <div class="list-bar flex-grow-0" data-tooltip="The number of addresses per page.">
                 <select name="pageSize" asp-items="Model.PageSizes" onchange="this.form.submit();"></select>
             </div>
         </form>
@@ -83,13 +83,13 @@
     <form method="post">
         <input type="hidden" asp-for="FriendId" />
 
-        <div class="address-selection">
+        <div class="item-selection">
             @if (Model.Address is not null && Model.Address.AddressId != Guid.Empty)
             {
                 <div class="mb-2">
                     <strong>Current address:</strong>
                     <div>
-                        <label class="rounded-3">
+                        <label>
                             <input type="radio" required asp-for="SelectedAddressId" class="d-none"
                                    id="address-@Model.SelectedAddressId" value="@Model.SelectedAddressId" checked />
                             @Model.Address.StreetAddress, @Model.Address.ZipCode @Model.Address.City, @Model.Address.Country
@@ -98,22 +98,22 @@
                 </div>
             }
 
-            @for (int i = 0; i < Model.Addresses.Count; i++)
-            {
-                <div>
-                    <label class="@(i == 0 ? "rounded-top" : null)@(i == Model.Addresses.Count-1 ? " rounded-bottom" : " border-bottom")">
+            <div>
+                @for (int i = 0; i < Model.Addresses.Count; i++)
+                {
+                    <label>
                         <input type="radio" required asp-for="SelectedAddressId" class="d-none" 
                             id="address-@Model.Addresses[i].AddressId" value="@Model.Addresses[i].AddressId" />
                         @Model.Addresses[i].StreetAddress, @Model.Addresses[i].ZipCode @Model.Addresses[i].City, @Model.Addresses[i].Country
                     </label>
-                </div>
-            }
+                }
+            </div>
         </div>
 
         <div class="d-flex flex-column align-items-end mt-3">
             @{
                 Pagination();
-                FriendCounter();
+                AddressCounter();
             }
         </div>
 
@@ -189,10 +189,10 @@
         </nav>
     }
 
-    void FriendCounter()
+    void AddressCounter()
     {
         <div class="fs-6 me-2">
-            Showing friends
+            Showing addresses
             @(int.Min(((Model.CurrentPage - 1) * Model.PageSize + 1), Model.TotalAddresses)
                 )-@int.Min(Model.CurrentPage * Model.PageSize, Model.TotalAddresses)
             of

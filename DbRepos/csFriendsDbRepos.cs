@@ -793,11 +793,26 @@ public class csFriendsDbRepos
         }
     }
 
+    public async Task<int> CountQuotesAsync(loginUserSessionDto usr, bool seeded, string filter, int pageNumber, int pageSize)
+    {
+        using (var db = csMainDbContext.DbContext(_dblogin))
+        {
+            filter = filter?.ToLower() ?? "";
+            
+            return await db.Quotes.AsNoTracking()
+                .Where(i => i.Seeded == seeded
+                        && (i.Quote.ToLower().Contains(filter) ||
+                            i.Author.ToLower().Contains(filter)))
+                .CountAsync();
+            
+        }
+    }
+
     public async Task<List<IQuote>> ReadQuotesAsync(loginUserSessionDto usr, bool seeded, bool flat, string filter, int pageNumber, int pageSize)
     {
         using (var db = csMainDbContext.DbContext(_dblogin))
         {
-            filter ??= "";
+            filter = filter?.ToLower() ?? "";
             if (!flat)
             {
                 //make sure the model is fully populated, try without include.
@@ -953,7 +968,7 @@ public class csFriendsDbRepos
     {
         using (var db = csMainDbContext.DbContext(_dblogin))
         {
-            filter ??= "";
+            filter = filter?.ToLower() ?? "";
             if (!flat)
             {
                 //make sure the model is fully populated, try without include.

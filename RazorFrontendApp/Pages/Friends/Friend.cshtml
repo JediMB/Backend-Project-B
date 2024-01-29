@@ -1,5 +1,6 @@
 ﻿@page
 @model RazorFrontendApp.Pages.Friends.FriendModel
+@using Models
 @{
     string friendName = Model.Friend is not null ? $": {Model.Friend.FirstName} {Model.Friend.LastName}" : null;
 
@@ -15,7 +16,19 @@
 
 <section id="friend">
     <div class="fs-4 border-bottom">Friends</div>
-    <h1 class="display-5 fw-normal">@ViewData["title"]</h1>
+    <div class="d-flex flex-row align-items-center gap-2">
+        <div><h1 class="display-5 fw-normal">@ViewData["title"]</h1></div>
+        @if (Model.Mode is FormMode.view)
+        {
+            <div>
+                <a class="d-block btn-svg svg-add" style="width: 36px; height: 36px;"
+                    data-tooltip="Edit friend" asp-page="/Friends/Friend"
+                    asp-route-action="edit" asp-route-id="@Model.Friend.FriendId">
+                <svg style="width: 36px; height: 36px;"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                </a>
+            </div>
+        }
+    </div>
 
     @if (Model.UpdateMessages.Any())
     {
@@ -62,7 +75,7 @@
         string inputClasses = $"form-control{(Model.Mode is not FormMode.add ? " formless" : null)}";
     }
 
-    <section class="bg-dark text-white rounded-3 mb-3">
+    <section class="bg-dark text-white rounded-3 my-3">
         <form id="friend-form" method="post" data-friend-form>
             <div class="p-3 d-flex flex-row justify-content-between align-items-center">
                 <h2 class="fs-3 m-0">Friend</h2>
@@ -72,7 +85,7 @@
                         <button data-btn-edit type="button" class="btn btn-svg" data-tooltip="Edit friend">
                             <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
                         </button>
-                        <button data-btn-cancel type="reset" class="d-none btn btn-svg" data-tooltip="Cancel">
+                        <button data-btn-cancel type="button" class="d-none btn btn-svg" data-tooltip="Cancel">
                             <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
                         </button>
                     </div>
@@ -181,7 +194,7 @@
                                 <button data-btn-edit type="button" class="btn btn-svg" data-tooltip="Edit address">
                                     <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
                                 </button>
-                                <button data-btn-cancel type="reset" class="d-none btn btn-svg" data-tooltip="Cancel">
+                                <button data-btn-cancel type="button" class="d-none btn btn-svg" data-tooltip="Cancel">
                                     <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
                                 </button>
                             </div>
@@ -299,17 +312,17 @@
                                     <button data-btn-edit type="button" class="btn btn-svg" data-tooltip="Edit quotes">
                                         <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
                                     </button>
-                                    <button data-btn-cancel type="reset" class="d-none btn btn-svg" data-tooltip="Cancel">
+                                    <button data-btn-cancel type="button" class="d-none btn btn-svg" data-tooltip="Cancel">
                                         <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
                                     </button>
                                 </div>
                             }
                         </div>
                         <div class="container p-0 m-0 bg-white text-black rounded-bottom">
-                            <div class="pt-4 pb-3 px-3 scrollbox-500">
+                            <div class="pt-4 pb-3 px-3">
+                                <input type="hidden" id="quote-friendId" name="friendId" value="@Model.Friend.FriendId" />
+                                <input type="hidden" id="quote-count" name="quoteCount" value="@(Model.Quotes?.Count ?? 0)" data-counter-value="@(Model.Quotes?.Count ?? 0)" />
                                 <fieldset id="quote-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
-                                    <input type="hidden" id="quote-friendId" name="friendId" value="@Model.Friend.FriendId" />
-                                    <input type="hidden" id="quote-count" name="quoteCount" value="@(Model.Quotes?.Count ?? 0)" data-counter-value="@(Model.Quotes?.Count ?? 0)" />
 
                                     @if (Model.Quotes is not null)
                                     {
@@ -325,17 +338,16 @@
                                                                 <span>Quote:</span>
                                                                 <span data-subform-display class="form-control border-0">@Model.Quotes[i].Quote</span>
                                                                 <textarea required data-subform-input placeholder="Quote" class="@inputClasses d-none"
-                                                                          asp-for="Quotes[i].Quote" data-saved-value="@Model.Quotes[i].Quote" data-original-value="@Model.Quotes[i].Quote"
-                                                                          readonly></textarea>
+                                                                          asp-for="Quotes[i].Quote" data-saved-value="@Model.Quotes[i].Quote" data-original-value="@Model.Quotes[i].Quote"></textarea>
                                                                 <span asp-validation-for="Quotes[i].Quote" class="invalid-feedback text-outline-black"></span>
                                                             </label>
                                                         </div>
                                                         <div>
                                                             <label class="form-label">
                                                                 <span>Author:</span>
-                                                                <input required type="text" data-subform-input placeholder="Author" class="@inputClasses"
-                                                                       asp-for="Quotes[i].Author" data-saved-value="@Model.Quotes[i].Author" data-original-value="@Model.Quotes[i].Author"
-                                                                       readonly />
+                                                                <span data-subform-display class="form-control border-0">@Model.Quotes[i].Author</span>
+                                                                <input required type="text" data-subform-input placeholder="Author" class="@inputClasses d-none"
+                                                                       asp-for="Quotes[i].Author" data-saved-value="@Model.Quotes[i].Author" data-original-value="@Model.Quotes[i].Author" />
                                                                 <span asp-validation-for="Quotes[i].Author" class="invalid-feedback text-outline-black"></span>
                                                             </label>
                                                         </div>
@@ -374,126 +386,328 @@
                             <div class="px-3 pb-3">
                                 @if (Model.Mode is not FormMode.view)
                                 {
-                                        <button type="submit" asp-page-handler="SubmitQuotes" class="d-none w-100 mt-2 btn btn-primary">
-                                            Submit changes
-                                        </button>
+                                    <button type="submit" asp-page-handler="SubmitQuotes" class="d-none w-100 mt-2 btn btn-primary">
+                                        Submit changes
+                                    </button>
                                 }
                             </div>
                         </div>
                     </form>
                 </section>
             }
-            @if (true)
+            @if (Model.IsEmptyView(Model.Pets) is false)
             {
-                <section class="w-100 h-100 bg-black text-white rounded-3 pt-3 mb-3">
-                    <h2 class="ms-3 fs-3">Pets</h2>
+                <section class="w-100 h-100 bg-dark text-white rounded-3 mb-3">
                     <form id="pets-form" method="post" data-friend-form>
-                        <fieldset id="pet-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
-                        
-                        
-                        </fieldset>
+                        <div class="p-3 d-flex flex-row justify-content-between align-items-center">
+                            <h2 class="ms-3 fs-3">Pets</h2>
+                            @if (Model.Mode is FormMode.edit)
+                            {
+                                <div class="d-flex flex-row gap-2">
+                                    <button type="button" class="d-none btn btn-svg" data-tooltip="Add new pet"
+                                            data-bs-toggle="modal" data-bs-target="#petModal">
+                                        <svg width="24" height="24"><use xlink:href="#svg-add" href="#svg-add"></use></svg>
+                                    </button>
+                                    <button data-btn-edit type="button" class="btn btn-svg" data-tooltip="Edit pets">
+                                        <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                                    </button>
+                                    <button data-btn-cancel type="button" class="d-none btn btn-svg" data-tooltip="Cancel">
+                                        <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="container p-0 m-0 bg-white text-black rounded-bottom">
+                            <div class="pt-4 pb-3 px-3">
+                                <input type="hidden" id="pet-friendId" name="friendId" value="@Model.Friend.FriendId" />
+                                <input type="hidden" id="pet-count" name="petCount" value="@(Model.Pets?.Count ?? 0)" data-counter-value="@(Model.Pets?.Count ?? 0)" />
+                                <fieldset id="pet-fields" disabled="@(Model.Mode is not FormMode.add ? "disabled" : null)">
+                                    @if (Model.Pets is not null)
+                                    {
+                                        @for (int i = 0; i < Model.Pets.Count; i++)
+                                        {
+                                            <div data-subform class="d-flex flex-column">
+                                                <input data-subform-status type="hidden" asp-for="Pets[i].Status" />
+                                                <input type="hidden" asp-for="Pets[i].PetId" />
+                                                <div class="d-flex flex-row gap-2">
+                                                    <div class="w-100">
+                                                        <div>
+                                                            <label class="form-label">
+                                                                <span>Name:</span>
+                                                                <span data-subform-display class="form-control border-0">@Model.Pets[i].Name</span>
+                                                                <input required data-subform-input type="text" placeholder="Name" class="@inputClasses d-none"
+                                                                       asp-for="Pets[i].Name" data-saved-value="@Model.Pets[i].Name" data-original-value="@Model.Pets[i].Name" />
+                                                                <span asp-validation-for="Pets[i].Name" class="invalid-feedback text-outline-black"></span>
+                                                            </label>
+                                                        </div>
+                                                        <div class="d-flex flex-row gap-3">
+                                                            <label class="form-label">
+                                                                <span>Mood:</span>
+                                                                <span data-subform-display class="form-control border-0">@Model.Pets[i].Mood</span>
+                                                                <select required data-subform-input asp-items="Html.GetEnumSelectList<enAnimalMood>()" class="@inputClasses w-100 d-none"
+                                                                        asp-for="Pets[i].Mood" data-saved-value="@((int)Model.Pets[i].Mood)" data-original-value="@((int)Model.Pets[i].Mood)">
+                                                                    <option disabled value="">Choose a mood</option>        
+                                                                </select>
+                                                                <span asp-validation-for="Pets[i].Mood" class="invalid-feedback text-outline-black"></span>
+                                                            </label>
+                                                            <label class="form-label">
+                                                                <span>Kind:</span>
+                                                                <span data-subform-display class="form-control border-0">@Model.Pets[i].Kind</span>
+                                                                <select required data-subform-input asp-items="Html.GetEnumSelectList<enAnimalKind>()" class="@inputClasses w-100 d-none"
+                                                                        asp-for="Pets[i].Kind" data-saved-value="@((int)Model.Pets[i].Kind)" data-original-value="@((int)Model.Pets[i].Kind)">
+                                                                    <option disabled value="">Choose a kind</option>
+                                                                </select>
+                                                                <span asp-validation-for="Pets[i].Mood" class="invalid-feedback text-outline-black"></span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    @if (Model.Mode is FormMode.edit)
+                                                    {
+                                                        <div data-form-hidden class="w-auto d-flex flex-column justify-content-between align-items-center gap-2 d-none">
+                                                            <div class="d-flex flex-column gap-2">
+                                                                <button data-subform-edit type="button" class="d-none btn btn-svg" data-tooltip="Edit pet">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
+                                                                </button>
+                                                                <button data-subform-cancel type="button" class="btn btn-svg" data-tooltip="Cancel editing">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
+                                                                </button>
+                                                                <button data-subform-reset type="button" class="d-none btn btn-svg" data-tooltip="Reset pet">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-reset" href="#svg-reset"></use></svg>
+                                                                </button>
+                                                                <button data-subform-remove type="button" class="d-none btn btn-svg" data-tooltip="Remove pet">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
+                                                                </button>
+                                                            </div>
+                                                            <div>
+                                                                <button data-subform-confirm type="button" class="btn btn-success text-white p-0" data-tooltip="Confirm">
+                                                                    <svg width="24" height="24"><use xlink:href="#svg-confirm" href="#svg-confirm"></use></svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                                <hr class="mx-3 mt-0" />
+                                            </div>
+                                        }
+                                    }
+                                </fieldset>
+                            </div>
+                            <div class="px-3 pb-3">
+                                @if (Model.Mode is not FormMode.view)
+                                {
+                                    <button type="submit" asp-page-handler="SubmitPets" class="d-none w-100 mt-2 btn btn-primary">
+                                        Submit changes
+                                    </button>
+                                }
+                            </div>
+                        </div>
                     </form>
                 </section>
             }
         </div>
     }
-
-
-    <!-- Pets attached to the friend are presented in a list, with buttons to edit or delete them -->
-    <!-- A button-link to a page that lets you add a new pet to the friend -->
-   @*  @if (Model.Friend?.Pets is not null)
-    {
-        <p><strong>Pets:</strong> @foreach (var pet in Model.Friend.Pets)
-            {
-                <div data-tooltip="@pet.PetId">
-                    @pet.Name
-                    the @pet.Mood
-                    @pet.Kind
-                </div>
-            }
-        </p>
-    } *@
 </section>
 
-<!-- Add Quote Modal -->
-<div class="modal fade text-black" id="quoteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="quoteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="quoteModalLabel">Add quote</h5>
+@if (Model.Mode is FormMode.edit)
+{
+    <!-- Add Quote Modal -->
+    <div class="modal fade text-black" id="quoteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="quoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="quoteModalLabel">Add quote</h5>
+                </div>
+                <form method="post">
+                    <input type="hidden" id="new-quote-status" value="@IMStatus.Inserted" data-original-value="@IMStatus.Inserted" />
+                    <input type="hidden" id="new-quote-id" value="@Guid.Empty" data-original-value="@Guid.Empty" />
+                    <div class="modal-body">
+                        <div>
+                            <label class="w-100 form-label">
+                                <span>New quote:</span>
+                                <textarea required id="new-quote-text" placeholder="New quote" class="@inputClasses"></textarea>
+                                <span class="invalid-feedback text-outline-black field-validation-valid"></span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="w-100 form-label">
+                                <span>New quote's author:</span>
+                                <input required id="new-quote-author" type="text" placeholder="New quote's author" class="@inputClasses" />
+                                <span class="invalid-feedback text-outline-black field-validation-valid"></span>
+                            </label>
+                        </div>
+                        <div class="position-relative mt-2">
+                            <input type="checkbox" id="select-quote" class="btn-check">
+                            <div class="selection-box">
+                                <div class="selection-box-header">
+                                    <h5 class="m-0">Select quote</h5>
+                                </div>
+                                <div class="selection-box-body bg-secondary">
+                                    <div class="item-selection bg-secondary">
+                                        @foreach (var quote in Model.AvailableQuotes)
+                                        {
+                                            <label class="bg-white">
+                                                <button type="button" class="w-100 border-0 bg-transparent"
+                                                data-quote-id="@quote.QuoteId"
+                                                data-quote-text="@quote.Quote"
+                                                data-quote-author="@quote.Author">
+                                                    <div class="text-start">
+                                                        @quote.Quote
+                                                    </div>
+                                                    <div class="text-end">
+                                                        @quote.Author
+                                                    </div>
+                                                </button>
+                                            </label>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="selection-box-footer">
+                                    <label for="select-quote" class="btn btn-secondary">Cancel</label>
+                                </div>
+                            </div>
+                            <label for="select-quote" class="w-100 btn btn-outline-primary">Select from list</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-btn-cancel-quote data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="button" class="btn btn-primary" data-btn-add-quote data-add-target="#quote-fields">
+                            Add
+                        </button>
+                    </div>
+                </form>
             </div>
-            <form method="post">
-                <div class="modal-body">
-                    <div>
-                        <label class="w-100 form-label">
-                            <span>New quote:</span>
-                            <textarea id="new-quote-text" placeholder="New quote" class="@inputClasses"></textarea>
-                        </label>
-                    </div>
-                    <div>
-                        <label class="w-100 form-label">
-                            <span>New quote's author:</span>
-                            <input id="new-quote-author" type="text" placeholder="New quote's author" class="@inputClasses" />
-                        </label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary"
-                            data-bs-dismiss="modal" data-btn-add-quote data-add-target="#quote-fields">Add</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
         </div>
     </div>
-</div>
 
-<!-- Quote Template -->
-<div id="template-quote" data-subform class="d-none d-flex flex-column">
-    <input data-subform-status type="hidden" id="template-quote-status" />
-    <input type="hidden" id="template-quote-id" />
-    <div class="d-flex flex-row gap-2">
-        <div class="w-100">
-            <div>
-                <label class="form-label">
-                    <span>Quote:</span>
-                    <textarea required data-subform-input placeholder="Quote" class="@inputClasses"
-                              id="template-quote-text" data-saved-value="" data-original-value=""
-                              readonly></textarea>
-                </label>
+    <!-- Quote Template -->
+    <div id="template-quote" class="d-none d-flex flex-column">
+        <input data-subform-status type="hidden" id="template-quote-status" />
+        <input type="hidden" id="template-quote-id" />
+        <div class="d-flex flex-row gap-2">
+            <div class="w-100">
+                <div>
+                    <label class="form-label">
+                        <span>Quote:</span>
+                        <span data-subform-display class="form-control border-0"></span>
+                        <textarea required data-subform-input placeholder="Quote" class="@inputClasses d-none"
+                        id="template-quote-text" data-saved-value="" data-original-value=""></textarea>
+                    </label>
+                </div>
+                <div>
+                    <label class="form-label">
+                        <span>Author:</span>
+                        <span data-subform-display class="form-control border-0"></span>
+                        <input required type="text" data-subform-input placeholder="Author" class="@inputClasses d-none"
+                        id="template-quote-author" data-saved-value="" data-original-value="" />
+                    </label>
+                </div>
             </div>
-            <div>
-                <label class="form-label">
-                    <span>Author:</span>
-                    <input required type="text" data-subform-input placeholder="Author" class="@inputClasses"
-                           id="template-quote-author" data-saved-value="" data-original-value=""
-                           readonly />
-                </label>
+            <div data-form-hidden class="w-auto d-flex flex-column justify-content-between align-items-center gap-2">
+                <div class="d-flex flex-column gap-2">
+                    <button data-subform-remove type="button" class="btn btn-svg" data-tooltip="Remove quote">
+                        <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
+                    </button>
+                </div>
             </div>
         </div>
-        <div data-form-hidden class="w-auto d-flex flex-column justify-content-between align-items-center gap-2">
-            <div class="d-flex flex-column gap-2">
-                <button data-subform-edit type="button" class="btn btn-svg" data-tooltip="Edit quote">
-                    <svg width="24" height="24"><use xlink:href="#svg-edit" href="#svg-edit"></use></svg>
-                </button>
-                <button data-subform-cancel type="button" class="d-none btn btn-svg" data-tooltip="Cancel editing">
-                    <svg width="24" height="24"><use xlink:href="#svg-cancel" href="#svg-cancel"></use></svg>
-                </button>
-                <button data-subform-reset type="button" class="btn btn-svg" data-tooltip="Reset quote">
-                    <svg width="24" height="24"><use xlink:href="#svg-reset" href="#svg-reset"></use></svg>
-                </button>
-                <button data-subform-remove type="button" class="btn btn-svg" data-tooltip="Remove quote">
-                    <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
-                </button>
-            </div>
-            <div>
-                <button data-subform-confirm type="button" class="d-none btn btn-success text-white p-0" data-tooltip="Confirm">
-                    <svg width="24" height="24"><use xlink:href="#svg-confirm" href="#svg-confirm"></use></svg>
-                </button>
+        <hr class="mx-3 mt-0" />
+    </div>
+
+    <!-- Add Pet Modal-->
+    <div class="modal fade text-black" id="petModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="petModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="petModalLabel">Add pet</h5>
+                </div>
+                <form method="post">
+                    <input type="hidden" id="new-pet-status" value="@IMStatus.Inserted" />
+                    <input type="hidden" id="new-pet-id" value="@Guid.Empty" />
+                    <div class="modal-body">
+                        <div>
+                            <label class="w-100 form-label">
+                                <span>New pet name:</span>
+                                <input required id="new-pet-name" placeholder="Name" class="@inputClasses" />
+                                <span class="invalid-feedback text-outline-black field-validation-valid"></span>
+                            </label>
+                        </div>
+                        <div class="d-flex flex-row gap-3">
+                            <label class="form-label w-100">
+                                <span>Pet mood:</span>
+                                <select required id="new-pet-mood" data-subform-input asp-items="Html.GetEnumSelectList<enAnimalMood>()" class="@inputClasses">
+                                    <option value="">Choose a mood</option>
+                                </select>
+                                <span class="invalid-feedback text-outline-black field-validation-valid"></span>
+                            </label>
+                            <label class="form-label w-100">
+                                <span>Pet kind:</span>
+                                <select required id="new-pet-kind" data-subform-input asp-items="Html.GetEnumSelectList<enAnimalKind>()" class="@inputClasses">
+                                    <option value="">Choose a kind</option>
+                                </select>
+                                <span class="invalid-feedback text-outline-black field-validation-valid"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-btn-cancel-pet data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="button" class="btn btn-primary" data-btn-add-pet data-add-target="#pet-fields">
+                            Add
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-    <hr class="mx-3 mt-0" />
-</div>
+
+    <!-- Pet Template -->
+    <div id="template-pet" class="d-none d-flex flex-column">
+        <input data-subform-status type="hidden" id="template-pet-status" />
+        <input type="hidden" id="template-pet-id" />
+        <div class="d-flex flex-row gap-2">
+            <div class="w-100">
+                <div>
+                    <label class="form-label">
+                        <span>Name:</span>
+                        <span data-subform-display class="form-control border-0"></span>
+                        <input required data-subform-input type="text" placeholder="Name" class="@inputClasses d-none"
+                               id="template-pet-name" data-saved-value="" data-original-value="" />
+                    </label>
+                </div>
+                <div class="d-flex flex-row gap-3">
+                    <label class="form-label">
+                        <span>Mood:</span>
+                        <span data-subform-display class="form-control border-0"></span>
+                        <select required data-subform-input asp-items="Html.GetEnumSelectList<enAnimalMood>()" class="@inputClasses w-100 d-none"
+                                id="template-pet-mood" data-saved-value="" data-original-value="">
+                            <option disabled value="">Choose a mood</option>
+                        </select>
+                    </label>
+                    <label class="form-label">
+                        <span>Kind:</span>
+                        <span data-subform-display class="form-control border-0"></span>
+                        <select required data-subform-input asp-items="Html.GetEnumSelectList<enAnimalKind>()" class="@inputClasses w-100 d-none"
+                                id="template-pet-kind" data-saved-value="" data-original-value="">
+                            <option disabled value="">Choose a kind</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+            <div data-form-hidden class="w-auto d-flex flex-column justify-content-between align-items-center gap-2">
+                <div class="d-flex flex-column gap-2">
+                    <button data-subform-remove type="button" class="btn btn-svg" data-tooltip="Remove pet">
+                        <svg width="24" height="24"><use xlink:href="#svg-remove" href="#svg-remove"></use></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <hr class="mx-3 mt-0" />
+    </div>
+}
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <!-- checkmark -->
@@ -542,13 +756,12 @@
     </symbol>
 </svg>
 
-<!-- TODO: Make preexisting quotes selectable from dropdown (in the modal?) -->
-
 @if (Model.Mode is FormMode.edit)
 {
-    <script src="~/lib/friend.js"></script>
+    <script defer src="~/js/friend.js"></script>
 }
 
 @section scripts {
     <partial name="_ValidationScriptsPartial" />
+    <partial name="_EnterPreventerPartial" />
 }

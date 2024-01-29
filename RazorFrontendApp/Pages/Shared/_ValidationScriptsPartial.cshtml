@@ -9,9 +9,4 @@
     };
     $.validator.setDefaults(settings);
     $.validator.unobtrusive.options = settings;
-
-    $(':input', document).keypress(function (e) {
-        var code = e.keyCode || e.which;
-        if (code == 13) return false;
-    });
 </script>

@@ -6,7 +6,7 @@ namespace RazorFrontendApp.Pages
 {
     public class FriendsModel : PageModel
     {
-        private IFriendsService _service;
+        private readonly IFriendsService _service;
         private readonly ILogger<FriendsModel> _logger;
 
         public int FriendCount { get; set; }
@@ -31,7 +31,7 @@ namespace RazorFrontendApp.Pages
                         g.Count(c => c.City is not null),
                         g.Where(c => c.City is null).FirstOrDefault()?.NrFriends ?? 0
                     ))
-                    .OrderBy(g => g.Item1)
+                    .OrderBy(g => g.Key)
                     .ToList();
 
                 if (Countries.Count == 0)
@@ -39,6 +39,7 @@ namespace RazorFrontendApp.Pages
             }
             catch (Exception ex)
             {
+                _logger.LogError("{Message}", ex.Message);
                 ErrorMessage = ex.Message;
             }
 

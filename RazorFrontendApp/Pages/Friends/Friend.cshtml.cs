@@ -17,6 +17,7 @@ namespace RazorFrontendApp.Pages.Friends
         public List<string> UpdateMessages { get; set; } = new();
         public List<string> ErrorMessages { get; set; } = new();
         public List<IFriend> FriendsAtAddress { get; set; }
+        public List<IQuote> AvailableQuotes { get; set; }
 
         [BindProperty]
         public FriendIM Friend { get; set; } = null;
@@ -26,6 +27,9 @@ namespace RazorFrontendApp.Pages.Friends
 
         [BindProperty]
         public List<QuoteIM> Quotes { get; set; } = null;
+
+        [BindProperty]
+        public List<PetIM> Pets { get; set; } = null;
 
         [BindProperty]
         public FormMode Mode { get; set; } = FormMode.view;
@@ -62,15 +66,30 @@ namespace RazorFrontendApp.Pages.Friends
                     Address = new(friend.Address);
                 }
 
+                AvailableQuotes = new(await _service.ReadQuotesAsync(null, true, true, null, 0, 1000));
+                AvailableQuotes.AddRange(await _service.ReadQuotesAsync(null, false, true, null, 0, 1000));
+
                 if (friend.Quotes?.Count > 0)
                 {
                     Quotes = friend.Quotes
                         .Select(q => new QuoteIM(q))
                         .ToList();
+
+                    AvailableQuotes = AvailableQuotes.Where(q =>
+                        Quotes.Any(qq => qq.QuoteId == q.QuoteId) is false
+                    ).ToList();
+                }
+                
+                if (friend.Pets?.Count > 0)
+                {
+                    Pets = friend.Pets
+                        .Select(p => new PetIM(p))
+                        .ToList();
                 }
             }
             catch (Exception ex)
             {
+                _logger.LogError("{Message}", ex.Message);
                 ErrorMessages.Add(ex.Message);
             }
 
@@ -122,6 +141,7 @@ namespace RazorFrontendApp.Pages.Friends
             }
             catch (Exception ex)
             {
+                _logger.LogError("{Message}", ex.Message);
                 ErrorMessages.Add(ex.Message);
 
                 return Page();
@@ -153,7 +173,7 @@ namespace RazorFrontendApp.Pages.Friends
 
                     Quotes = friend.Quotes.Select(q => new QuoteIM(q)).ToList();
 
-                    // Also update pets
+                    Pets = friend.Pets.Select(p => new PetIM(p)).ToList();
 
                     return Page();
                 }
@@ -172,6 +192,7 @@ namespace RazorFrontendApp.Pages.Friends
             }
             catch (Exception ex)
             {
+                _logger.LogError("{Message}", ex.Message);
                 return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = Friend.FriendId, msg = ex.Message });
             }
         }
@@ -184,9 +205,10 @@ namespace RazorFrontendApp.Pages.Friends
             try
             {
                 csFriendCUdto friend = new(await _service.ReadFriendAsync(null, Friend.FriendId, false)
-                    ?? throw new Exception("Trying to update a friend that does not exist."));
-
-                friend.AddressId = null;
+                    ?? throw new Exception("Trying to update a friend that does not exist."))
+                {
+                    AddressId = null
+                };
 
                 var updatedFriend = await _service.UpdateFriendAsync(null, friend)
                     ?? throw new Exception("Failed to update friend.");
@@ -198,6 +220,7 @@ namespace RazorFrontendApp.Pages.Friends
             }
             catch (Exception ex)
             {
+                _logger.LogError("{Message}", ex.Message);
                 return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = Friend.FriendId, msg = ex.Message });
             }
         }
@@ -223,7 +246,7 @@ namespace RazorFrontendApp.Pages.Friends
 
                     Quotes = oldFriend.Quotes.Select(q => new QuoteIM(q)).ToList();
 
-                    // Also update pets
+                    Pets = oldFriend.Pets.Select(p => new PetIM(p)).ToList();
 
                     return Page();
                 }
@@ -234,9 +257,10 @@ namespace RazorFrontendApp.Pages.Friends
                     ?? throw new Exception("Failed to create new address.");
 
                 csFriendCUdto friend = new(await _service.ReadFriendAsync(null, Friend.FriendId, false)
-                    ?? throw new Exception("Trying to update a friend that does not exist."));
-
-                friend.AddressId = createdAddress.AddressId;
+                    ?? throw new Exception("Trying to update a friend that does not exist."))
+                {
+                    AddressId = createdAddress.AddressId
+                };
 
                 IFriend updatedFriend = await _service.UpdateFriendAsync(null, friend)
                     ?? throw new Exception("Failed to update friend.");
@@ -248,6 +272,7 @@ namespace RazorFrontendApp.Pages.Friends
             }
             catch (Exception ex)
             {
+                _logger.LogError("{Message}", ex.Message);
                 return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = Friend.FriendId, msg = ex.Message });
             }
         }
@@ -275,7 +300,7 @@ namespace RazorFrontendApp.Pages.Friends
 
                     Quotes = friend.Quotes.Select(q => new QuoteIM(q)).ToList();
 
-                    // Also update pets
+                    Pets = friend.Pets.Select(p => new PetIM(p)).ToList();
 
                     return Page();
                 }
@@ -293,6 +318,7 @@ namespace RazorFrontendApp.Pages.Friends
             }
             catch (Exception ex)
             {
+                _logger.LogError("{Message}", ex.Message);
                 return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = Friend.FriendId, msg = ex.Message });
             }
         }
@@ -331,7 +357,7 @@ namespace RazorFrontendApp.Pages.Friends
                     if (friend?.Address is not null)
                         Address = new(friend.Address);
 
-                    // Also update pets
+                    Pets = friend.Pets.Select(p => new PetIM(p)).ToList();
 
                     return Page();
                 }
@@ -360,12 +386,13 @@ namespace RazorFrontendApp.Pages.Friends
                 }
 
                 csFriendCUdto friendDTO = new(await _service.ReadFriendAsync(null, Friend.FriendId, false)
-                    ?? throw new Exception("Trying to update an address that does not exist."));
-
-                friendDTO.QuotesId = Quotes
-                    .Where(q => q.Status != IMStatus.Unknown && q.Status != IMStatus.Deleted)
-                    .Select(q => q.QuoteId)
-                    .ToList();
+                    ?? throw new Exception("Trying to update an address that does not exist."))
+                {
+                    QuotesId = Quotes
+                        .Where(q => q.Status != IMStatus.Unknown && q.Status != IMStatus.Deleted)
+                        .Select(q => q.QuoteId)
+                        .ToList()
+                };
 
                 friend = await _service.UpdateFriendAsync(null, friendDTO)
                     ?? throw new Exception("Failed to update friend.");
@@ -374,6 +401,86 @@ namespace RazorFrontendApp.Pages.Friends
             }
             catch (Exception ex)
             {
+                _logger.LogError("{Message}", ex.Message);
+                return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = friendId, msg = ex.Message });
+            }
+        }
+
+        public async Task<IActionResult> OnPostSubmitPets(Guid friendId, int petCount)
+        {
+            if (friendId == Guid.Empty)
+                return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = friendId, msg = "Empty friend id." });
+
+            List<string> validationKeys = new();
+
+            int numberOfPets = int.Max(Quotes.Count, petCount);
+
+            try
+            {
+                if (numberOfPets > 50)
+                    throw new ArgumentException("Too many pets submitted. (Max 50)");
+
+                for (int i = 0; i < numberOfPets; i++)
+                {
+                    validationKeys.Add($"Pets[{i}].Status");
+                    validationKeys.Add($"Pets[{i}].PetId");
+                    validationKeys.Add($"Pets[{i}].Name");
+                    validationKeys.Add($"Pets[{i}].Kind");
+                    validationKeys.Add($"Pets[{i}].Mood");
+                }
+
+                if (IsInvalid(validationKeys.ToArray()))
+                {
+                    IFriend friend = await _service.ReadFriendAsync(null, Friend.FriendId, false)
+                        ?? throw new Exception("Trying to update an address that does not exist.");
+
+                    Friend = new(friend);
+
+                    if (friend?.Address is not null)
+                        Address = new(friend.Address);
+
+                    Quotes = friend.Quotes.Select(q => new QuoteIM(q)).ToList();
+
+                    return Page();
+                }
+
+                foreach (var pet in Pets)
+                {
+                    switch (pet.Status)
+                    {
+                        case IMStatus.Deleted:
+                            IPet deletedPet = await _service.DeletePetAsync(null, pet.PetId)
+                                ?? throw new Exception("Failed to delete pet.");
+                            break;
+
+                        case IMStatus.Inserted:
+                            IPet newPet = pet.UpdateModel(new csPet());
+                            newPet.Friend = await _service.ReadFriendAsync(null, friendId, true)
+                                ?? throw new Exception("Trying to update a friend that does not exist.");
+
+                            newPet = await _service.CreatePetAsync(null,
+                                new csPetCUdto(newPet) { PetId = null }
+                            ) ?? throw new Exception("Failed to create new pet.");
+
+                            pet.PetId = newPet.PetId;
+                            break;
+
+                        case IMStatus.Modified:
+                            IPet updatedPet = await _service.ReadPetAsync(null, pet.PetId, false)
+                                ?? throw new Exception("Trying to update a pet that does not exist.");
+
+                            updatedPet = await _service.UpdatePetAsync(null,
+                                new csPetCUdto(pet.UpdateModel(updatedPet))
+                            ) ?? throw new Exception("Failed to update pet");
+                            break;
+                    }
+                }
+
+                return RedirectToPage("Friend", "updated", new { action = FormMode.edit, id = friendId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("{Message}", ex.Message);
                 return RedirectToPage("Friend", "error", new { action = FormMode.edit, id = friendId, msg = ex.Message });
             }
         }
@@ -572,6 +679,54 @@ namespace RazorFrontendApp.Pages.Friends
         {
             model.Quote = Quote;
             model.Author = Author;
+
+            return model;
+        }
+        #endregion
+    }
+
+    public class PetIM
+    {
+        public IMStatus Status { get; set; } = IMStatus.Unknown;
+
+        public Guid PetId { get; set; } = Guid.Empty;
+
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Please input a name")]
+        [RegularExpression("^[^<>\\/\"@]*$", ErrorMessage = "Name may not contain special characters < > \\ / \" @")]
+        [StringLength(200, MinimumLength = 1, ErrorMessage = "Name must contain between 1 and 200 characters")]
+        public string Name { get; set; }
+
+        [Required]
+        public enAnimalMood Mood { get; set; }
+        [Required]
+        public enAnimalKind Kind { get; set; }
+
+        #region Constructors and updater
+        public PetIM() { }
+
+        public PetIM(IPet original)
+        {
+            Status = IMStatus.Unchanged;
+            PetId = original.PetId;
+            Name = original.Name;
+            Mood = original.Mood;
+            Kind = original.Kind;
+        }
+
+        public PetIM(PetIM original)
+        {
+            Status = original.Status;
+            PetId = original.PetId;
+            Name = original.Name;
+            Mood = original.Mood;
+            Kind = original.Kind;
+        }
+
+        public IPet UpdateModel(IPet model)
+        {
+            model.Name = Name;
+            model.Mood = Mood;
+            model.Kind = Kind;
 
             return model;
         }
