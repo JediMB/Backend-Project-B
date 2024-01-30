@@ -49,7 +49,7 @@
         </div>
 
         <div class="friend-list">
-            <div class="friend-list__header first">Name</div>
+            <div class="friend-list__header first">Name / Email</div>
             <div class="friend-list__header">Address</div>
             <div class="friend-list__header">Info</div>
             <div class="friend-list__header last">
@@ -65,8 +65,11 @@
                 string rowClass = $"friend-list__row-{(evenRow ? "even" : "odd")}";
 
                 <div class="friend-list__column first @rowClass">
-                    <div class="ms-xl-4 ms-lg-3 ms-md-1 ms-sm-0 me-auto" data-tooltip="@friend.Email">
+                    <div class="ms-xl-4 ms-lg-3 ms-md-1 ms-sm-0 me-auto">
                         @friend.FirstName @friend.LastName
+                    </div>
+                    <div class="me-xl-4 me-lg-3 me-md-1 me-sm-9 ms-auto fs-6 fst-italic opacity-75">
+                        @friend.Email
                     </div>
                 </div>
                 <div class="friend-list__column @rowClass">

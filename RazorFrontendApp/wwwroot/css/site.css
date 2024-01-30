@@ -226,7 +226,7 @@ img.city {
     display: grid;
     grid-template-columns: 4fr 4fr 3fr 1fr;
     grid-template-rows: 1fr;
-    gap: 0.5rem 0.25em;
+    gap: 0.25rem 0.25em;
 }
 
 .friend-list > * {
@@ -237,7 +237,7 @@ img.city {
 }
 
 .friend-list__header {
-    background-color: darkorchid;
+    background-color: #000;
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -256,12 +256,12 @@ img.city {
 }
 
 .friend-list__row-odd {
-    background-color: orchid;
+    background-color: #fff;
     color: #000;
 }
 
 .friend-list__row-even {
-    background-color: mediumorchid;
+    background-color: #ddd;
     color: #000;
 }
 
